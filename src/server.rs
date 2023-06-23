@@ -3,11 +3,10 @@ use std::process::exit;
 use std::process::Command;
 use std::process::Child;
 
-pub fn start_server(redis_conf_path: &str, workers: &str, address: &str, port: &str, timeout: &str) -> (Option<u32>, Option<u32>) {
+pub fn start_server(redis_conf_path: &str, workers: &str, address: &str, port: &str, timeout: &str) -> Result<(Option<u32>, Option<u32>), String> {
     // Check if the Redis configuration file exists
     if !Path::new(redis_conf_path).exists() {
-        println!("Error: Redis configuration file does not exist at path {}", redis_conf_path);
-        exit(1);
+        return Err(format!("Redis configuration file does not exist at path {}", redis_conf_path));
     }
 
     // Start the Redis server with a custom configuration file
@@ -37,12 +36,11 @@ pub fn start_server(redis_conf_path: &str, workers: &str, address: &str, port: &
     let gunicorn_pid = match gunicorn_server {
         Ok(child) => Some(child.id()),
         Err(e) => {
-            println!("Failed to start Gunicorn server: {}", e);
-            exit(1);
+            return Err(format!("Failed to start Gunicorn server: {}", e));
         }
-    };
+    };        
 
-    (redis_pid, gunicorn_pid)
+    Ok((redis_pid, gunicorn_pid))
 }
 
 pub fn stop_server(redis_pid: Option<u32>, gunicorn_pid: Option<u32>) {
