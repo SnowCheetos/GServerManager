@@ -78,7 +78,7 @@ fn main() {
                     
                     "stop" => {
                         println!("Stopping server...");
-                    
+                     
                         if redis_pid.is_some() && gunicorn_pid.is_some() {
                             *server_op_lock = Some(thread::spawn(move || {
                                 server::stop_server(redis_pid, gunicorn_pid);
