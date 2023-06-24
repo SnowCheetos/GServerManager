@@ -163,7 +163,7 @@ impl Server {
             // Pull the latest changes from the Git repository
             let pull_result;
             {
-                env::set_current_dir(&self.path).unwrap();
+                env::set_current_dir(&self.original_dir).unwrap();
                 pull_result = git_pull(&self.path);
                 env::set_current_dir(&self.original_dir).unwrap();
             }
@@ -187,7 +187,7 @@ impl Server {
                 if diff_output.contains("CMakeLists.txt") {
                     println!("CMakeLists.txt has changed, re-running cmake...");
                     {
-                        env::set_current_dir(&self.path).unwrap();
+                        env::set_current_dir(&self.original_dir).unwrap();
                         let result = run_cmake(&self.path);
                         env::set_current_dir(&self.original_dir).unwrap();
                         if let Err(e) = result {
@@ -198,7 +198,7 @@ impl Server {
                 }
     
                 {
-                    env::set_current_dir(&self.path).unwrap();
+                    env::set_current_dir(&self.original_dir).unwrap();
                     let result = compile_and_install_project(&self.path);
                     env::set_current_dir(&self.original_dir).unwrap();
                     if let Err(e) = result {
