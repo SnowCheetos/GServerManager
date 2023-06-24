@@ -2,6 +2,7 @@ use crate::server::server::Server;
 use std::path::Path;
 
 
+#[derive(Debug)]
 pub struct Servers {
     pub servers: Vec<Server>,
 }
@@ -46,7 +47,49 @@ impl Servers {
         }
     }
 
+    pub fn start_server(&mut self, name: &str) -> Result<(), String> {
+        let index = self.servers.iter().position(|s| s.name == name);
+
+        if let Some(index) = index {
+            // Safely shut down the server before removing
+            self.servers[index].start();
+
+            Ok(())
+        } else {
+            Err(String::from("Server not found"))
+        }
+    }
+
+    pub fn stop_server(&mut self, name: &str) -> Result<(), String> {
+        let index = self.servers.iter().position(|s| s.name == name);
+
+        if let Some(index) = index {
+            // Safely shut down the server before removing
+            self.servers[index].stop();
+
+            Ok(())
+        } else {
+            Err(String::from("Server not found"))
+        }
+    }
+
+    pub fn restart_server(&mut self, name: &str) -> Result<(), String> {
+        let index = self.servers.iter().position(|s| s.name == name);
+
+        if let Some(index) = index {
+            // Safely shut down the server before removing
+            self.servers[index].restart();
+
+            Ok(())
+        } else {
+            Err(String::from("Server not found"))
+        }
+    }
+
     pub fn flush(&mut self) {
+        for server in &mut self.servers {
+            server.stop();
+        }
         self.servers.clear();
     }
 
@@ -61,7 +104,7 @@ impl Servers {
     }
 
     // Helper function to check if a server port already exists
-    fn port_exists(&self, port: i32) -> bool {
+    fn port_exists(&self, port: u32) -> bool {
         self.servers.iter().any(|s| s.port == port)
     }
 }
