@@ -11,6 +11,10 @@ use signal_hook::flag;
 use std::thread;
 use std::time::Duration;
 use std::process::exit;
+use std::io::{self, BufRead, BufReader};
+use std::process::Stdio;
+
+use ctrlc;
 
 
 #[derive(Clone, Debug)]
@@ -164,21 +168,37 @@ impl Server {
     }
 
     pub fn monitor(&self) {
-        let term = Arc::new(AtomicBool::new(false));
-        flag::register_conditional_shutdown(SIGINT, 0, Arc::clone(&term)).unwrap();
-
         if self.running {
             let monitor_command = format!("tail -f {}", "gunicorn.log");
-
-            Command::new("sh")
+    
+            let process = Command::new("sh")
                 .arg("-c")
                 .arg(&monitor_command)
+                .stdout(Stdio::piped())
                 .spawn()
                 .expect("Failed to monitor the server.");
-
+    
+            let stdout = process.stdout.expect("Failed to capture stdout.");
+            let reader = BufReader::new(stdout);
+    
             println!("Monitoring server... Press Ctrl+C to stop.");
-
-            term.store(true, Ordering::Relaxed);
+    
+            let term = Arc::new(AtomicBool::new(false));
+            let term_clone = Arc::clone(&term);
+    
+            ctrlc::set_handler(move || {
+                term_clone.store(true, Ordering::Relaxed);
+            })
+            .expect("Failed to set Ctrl+C handler");
+    
+            for line in reader.lines() {
+                if term.load(Ordering::Relaxed) {
+                    break;
+                }
+                if let Ok(line) = line {
+                    println!("{}", line);
+                }
+            }
         } else {
             println!("Server is not currently running.")
         }

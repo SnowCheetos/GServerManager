@@ -85,6 +85,24 @@ impl ServerManager {
                 }
             },
 
+            Some(Command::List {}) => {
+                if let Some(servers) = &mut self.servers {
+                    servers.list_all();
+                }
+            },
+
+            Some(Command::Flush {}) => {
+                if let Some(servers) = &mut self.servers {
+                    servers.flush();
+                }
+            },
+
+            Some(Command::Monitor { name }) => {
+                if let Some(servers) = &mut self.servers {
+                    servers.monitor(name);
+                }
+            },
+
             _ => {
                 println!("No command provided. Use --help to see available commands.");
                 // You can choose to exit gracefully or continue the program flow here

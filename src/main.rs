@@ -20,7 +20,7 @@ fn main() {
         let input = input.trim_end();
 
         if input == "quit" || input == "exit" {
-            servers.flush();
+            manager.servers.expect("REASON").flush();
             break;
         }
 

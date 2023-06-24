@@ -93,6 +93,41 @@ impl Servers {
         self.servers.clear();
     }
 
+    pub fn monitor(&mut self, name: &str) {
+        let index = self.servers.iter().position(|s| s.name == name);
+
+        if let Some(index) = index {
+            // Safely shut down the server before removing
+            self.servers[index].monitor();
+        } else {
+            println!("Server not found.")
+        }
+    }
+
+    pub fn list_all(&mut self) {
+        println!("[INFO] Listing all available servers");
+        println!("[INFO] [*]: Running | [ ]: Not running \n");
+        for server in &mut self.servers {
+            if server.running {
+                println!("[*] Name: {} | Address: {}:{} | Workers: {} | Timeout: {}s |", 
+                    server.name, 
+                    server.host, 
+                    server.port, 
+                    server.workers,
+                    server.timeout
+                );
+            } else {
+                println!("[ ] Name: {} | Address: {}:{} | Workers: {} | Timeout: {}s |", 
+                    server.name, 
+                    server.host, 
+                    server.port, 
+                    server.workers,
+                    server.timeout
+                );
+            }
+        }
+    }
+
     // Helper function to check if a server name already exists
     fn name_exists(&self, name: &str) -> bool {
         self.servers.iter().any(|s| s.name == name)
