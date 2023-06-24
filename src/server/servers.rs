@@ -238,7 +238,7 @@ impl Servers {
             };
             if log_path.exists() {
                 let output = Command::new("python")
-                .arg("scripts/visualizer.py")
+                .arg("scripts/main.py")
                 .arg(log_path)
                 .arg(export_arg)
                 .output()

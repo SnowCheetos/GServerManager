@@ -1,60 +1,38 @@
-import re
-import argparse
-import datetime
-import pandas as pd
 import matplotlib.pyplot as plt
+import seaborn as sns
 
-log_entry_pattern = r'\[(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2} [+-]\d{4})\] \[(\d+)\] \[(\w+)\] (.*)'
-filter_pattern = r'Starting gunicorn|Shutting down: Master'
+def visualize_logs(server_log_df, event_log_df):
+    fig = plt.figure(figsize=(12, 9))
 
-parser = argparse.ArgumentParser(description='Log Visualizer')
-parser.add_argument('log_file', type=str, help='Path to the log file')
-parser.add_argument('export', type=str, help='Whether or not to export the image')
-args = parser.parse_args()
+    # HTTP Method Distribution
+    ax1 = fig.add_subplot(221)
+    method_counts = server_log_df['RequestMethod'].value_counts()
+    sns.barplot(x=method_counts.index, y=method_counts.values, alpha=0.8, ax=ax1)
+    ax1.set_title('HTTP Method Distribution')
+    ax1.set_ylabel('Number of Occurrences', fontsize=12)
+    ax1.set_xlabel('Method', fontsize=12)
 
-columns = ['Timestamp', 'PID', 'LogLevel', 'Message']
+    # Status Code Distribution
+    ax2 = fig.add_subplot(222)
+    status_counts = server_log_df['ResponseCode'].value_counts()
+    sns.barplot(x=status_counts.index, y=status_counts.values, alpha=0.8, ax=ax2)
+    ax2.set_title('Status Code Distribution')
+    ax2.set_ylabel('Number of Occurrences', fontsize=12)
+    ax2.set_xlabel('Status Code', fontsize=12)
 
-log_data = []
-with open(args.log_file, 'r') as file:
-    for line in file:
-        match = re.match(log_entry_pattern, line)
-        if match and re.search(filter_pattern, line):
-            log_data.append(list(match.groups()))
+    # Requests Over Time
+    ax3 = fig.add_subplot(223)
+    server_log_df['Timestamp'] = server_log_df['Timestamp'].dt.floor('T')  # rounding time to the nearest minute
+    requests_time = server_log_df['Timestamp'].value_counts().sort_index()
+    sns.lineplot(x=requests_time.index, y=requests_time.values, ax=ax3)
+    ax3.set_title('Requests Over Time')
+    ax3.set_ylabel('Number of Requests', fontsize=12)
+    ax3.set_xlabel('Time', fontsize=12)
 
-df = pd.DataFrame(log_data, columns=columns)
-df['Timestamp'] = pd.to_datetime(df['Timestamp'], format='%Y-%m-%d %H:%M:%S %z')
-df[['RequestMethod', 'Endpoint', 'ResponseCode', 'UserAgent']] = df['Message'].str.extract(r'"(\w+) (.*?) HTTP/\d\.\d" (\d+) \d+ "-" "(.*?)"')
-
-plt.figure(figsize=(10, 6))
-
-plt.subplot(2, 2, 1)
-df_start_stop = df[df['Message'].str.contains('Starting gunicorn|Shutting down: Master')]
-plt.plot(df_start_stop['Timestamp'], df_start_stop['Message'])
-plt.title('Server Start/Stop Events')
-plt.xlabel('Timestamp')
-plt.ylabel('Message')
-
-plt.subplot(2, 2, 2)
-response_code_counts = df['ResponseCode'].value_counts()
-plt.bar(response_code_counts.index, response_code_counts.values)
-plt.title('Response Code Distribution')
-plt.xlabel('Response Code')
-plt.ylabel('Count')
-
-plt.subplot(2, 1, 2)
-df['Hour'] = df['Timestamp'].dt.hour
-request_counts_by_hour = df.groupby('Hour').size().reset_index(name='Count')
-heatmap_data = pd.pivot_table(request_counts_by_hour, values='Count', index='Hour', columns='Hour')
-plt.imshow(heatmap_data, cmap='hot', interpolation='nearest')
-plt.colorbar(label='Request Count')
-plt.title('Request Count by Hour')
-plt.xlabel('Hour')
-plt.ylabel('Hour')
-
-plt.tight_layout()
-
-if eval(args.export):
-    current_datetime = datetime.datetime.now()
-    plt.savefig(f"data/{args.log_file.split('/')[-1].split('.')[0]}-{current_datetime.strftime('%Y-%m-%d_%H-%M-%S')}.png")
-
-plt.show()
+    # Event Type Distribution
+    ax4 = fig.add_subplot(224)
+    event_counts = event_log_df['LogLevel'].value_counts()
+    sns.barplot(x=event_counts.index, y=event_counts.values, alpha=0.8, ax=ax4)
+    ax4.set_title('Event Type Distribution')
+    ax4.set_ylabel('Number of Occurrences', fontsize=12)
+    ax4.set_xlabel('Event Type', fontsize=12)
