@@ -1,4 +1,4 @@
-![](media/logo.jpg)
+![](media/logo.png)
 
 # GServerManager
 

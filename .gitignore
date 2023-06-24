@@ -1,6 +1,6 @@
 /target
 servers_backup.json
-*.png
+*.jpeg
 *.csv
 *.pyc
 __pycache__/
