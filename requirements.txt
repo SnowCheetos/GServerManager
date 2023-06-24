@@ -2,3 +2,5 @@ argparse
 pandas
 numpy
 matplotlib
+flask
+gunicorn
