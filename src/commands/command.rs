@@ -73,6 +73,9 @@ pub enum Command {
     Visualize {
         #[structopt(short="N", long)]
         name: String,
+        
+        #[structopt(short="E", long)]
+        export: Option<bool>
     },
 
     #[structopt(name = "git_init")]
