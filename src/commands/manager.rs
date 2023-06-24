@@ -58,6 +58,33 @@ impl ServerManager {
                 }
             },
 
+            Some(Command::Start { name }) => {
+                if let Some(servers) = &mut self.servers {
+                    match servers.start_server(name) {
+                        Ok(()) => println!("Server started successfully."),
+                        Err(e) => println!("Failed to start server: {}", e),
+                    }
+                }
+            },
+
+            Some(Command::Stop { name }) => {
+                if let Some(servers) = &mut self.servers {
+                    match servers.stop_server(name) {
+                        Ok(()) => println!("Server stopped successfully."),
+                        Err(e) => println!("Failed to stop server: {}", e),
+                    }
+                }
+            },
+
+            Some(Command::Restart { name }) => {
+                if let Some(servers) = &mut self.servers {
+                    match servers.restart_server(name) {
+                        Ok(()) => println!("Server restarted successfully."),
+                        Err(e) => println!("Failed to restart server: {}", e),
+                    }
+                }
+            },
+
             _ => {
                 println!("No command provided. Use --help to see available commands.");
                 // You can choose to exit gracefully or continue the program flow here

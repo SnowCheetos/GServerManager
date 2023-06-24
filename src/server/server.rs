@@ -8,6 +8,9 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use signal_hook::consts::signal::*;
 use signal_hook::flag;
+use std::thread;
+use std::time::Duration;
+use std::process::exit;
 
 
 #[derive(Clone, Debug)]
@@ -69,14 +72,32 @@ impl Server {
     }
 
     pub fn stop(&mut self) {
-        // Stop the server
         if self.running {
-            kill(Pid::from_raw(self.pid as i32), Signal::SIGTERM).unwrap();
-            self.running = false;
+            // Execute the command to kill the server process
+            let output = Command::new("pkill")
+                .arg("-f")
+                .arg(format!("gunicorn --workers={} --bind={}:{}", self.workers, self.host, self.port))
+                .output();
+
+            match output {
+                Ok(output) => {
+                    if output.status.success() {
+                        self.running = false;
+                        self.pid = 0;
+                        println!("Stopping... ");
+                    } else {
+                        println!("Failed to stop server: {:?}", output.stderr);
+                    }
+                }
+                Err(e) => {
+                    println!("Failed to execute stop command: {}", e);
+                    exit(1);
+                }
+            }
         } else {
-            println!("Server is not currently running.")
+            println!("Server is not currently running.");
         }
-    }
+    }    
 
     pub fn restart(&mut self) {
         self.stop();

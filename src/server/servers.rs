@@ -47,7 +47,49 @@ impl Servers {
         }
     }
 
+    pub fn start_server(&mut self, name: &str) -> Result<(), String> {
+        let index = self.servers.iter().position(|s| s.name == name);
+
+        if let Some(index) = index {
+            // Safely shut down the server before removing
+            self.servers[index].start();
+
+            Ok(())
+        } else {
+            Err(String::from("Server not found"))
+        }
+    }
+
+    pub fn stop_server(&mut self, name: &str) -> Result<(), String> {
+        let index = self.servers.iter().position(|s| s.name == name);
+
+        if let Some(index) = index {
+            // Safely shut down the server before removing
+            self.servers[index].stop();
+
+            Ok(())
+        } else {
+            Err(String::from("Server not found"))
+        }
+    }
+
+    pub fn restart_server(&mut self, name: &str) -> Result<(), String> {
+        let index = self.servers.iter().position(|s| s.name == name);
+
+        if let Some(index) = index {
+            // Safely shut down the server before removing
+            self.servers[index].restart();
+
+            Ok(())
+        } else {
+            Err(String::from("Server not found"))
+        }
+    }
+
     pub fn flush(&mut self) {
+        for server in &mut self.servers {
+            server.stop();
+        }
         self.servers.clear();
     }
 
