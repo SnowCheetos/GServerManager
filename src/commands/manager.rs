@@ -6,6 +6,7 @@ use termion::{color, style};
 use crate::commands::command::Command;
 use crate::server::server::Server;
 use crate::server::servers::Servers;
+use crate::utils::hardware;
 
 #[derive(Debug, StructOpt)]
 #[structopt(name = "Server Manager", about = "Manage your servers")]
@@ -101,6 +102,10 @@ impl ServerManager {
                 if let Some(servers) = &mut self.servers {
                     servers.monitor(name);
                 }
+            },
+
+            Some(Command::Hardware {}) => {
+                hardware::monitor_system_info();
             },
 
             _ => {
