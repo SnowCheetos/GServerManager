@@ -10,7 +10,7 @@ parser.add_argument('export', type=str, help='Whether or not to export the image
 args = parser.parse_args()
 
 s_df, e_df = parse_log_file(args.log_file)
-
+ 
 if len(s_df) > 0 and len(e_df) > 0:
     visualize_logs(s_df, e_df)
     plt.tight_layout()
