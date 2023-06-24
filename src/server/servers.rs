@@ -142,22 +142,35 @@ impl Servers {
         println!("[INFO] [*]: Running | [ ]: Not running \n");
         for server in &mut self.servers {
             if server.running {
-                println!("[*] Name: {} | Address: {}:{} | Workers: {} | Timeout: {}s |", 
+                println!("[*] Name: {} | Address: {}:{} | Workers: {} | Timeout: {}s | PID: {} |", 
                     server.name, 
                     server.host, 
                     server.port, 
                     server.workers,
-                    server.timeout
+                    server.timeout,
+                    server.pid
                 );
             } else {
-                println!("[ ] Name: {} | Address: {}:{} | Workers: {} | Timeout: {}s |", 
+                println!("[ ] Name: {} | Address: {}:{} | Workers: {} | Timeout: {}s | PID: {} |", 
                     server.name, 
                     server.host, 
                     server.port, 
                     server.workers,
-                    server.timeout
+                    server.timeout,
+                    server.pid
                 );
             }
+        }
+    }
+
+    pub fn clear_logs(&mut self, name: &str) {
+        let index = self.servers.iter().position(|s| s.name == name);
+
+        if let Some(index) = index {
+            // Safely shut down the server before removing
+            self.servers[index].clear_logs();
+        } else {
+            println!("Server not found.")
         }
     }
 

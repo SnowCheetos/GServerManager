@@ -1,31 +1,9 @@
 use sysinfo::{System, SystemExt, ProcessorExt};
-use std::thread;
-use std::time::Duration;
-use console::Term;
-use std::sync::atomic::{AtomicBool, Ordering};
-use std::sync::Arc;
-use ctrlc::set_handler;
 
 pub fn monitor_system_info() {
-    let term = Term::stdout();
     let mut sys = System::new_all();
-
-    let running = Arc::new(AtomicBool::new(true));
-    let running_clone = Arc::clone(&running);
-
-    // Set the SIGINT signal handler
-    set_handler(move || {
-        running_clone.store(false, Ordering::Relaxed);
-    })
-    .expect("Failed to set SIGINT signal handler");
-
-    while running.load(Ordering::Relaxed) {
-        term.clear_screen().expect("Failed to clear the console screen");
-        print_cpu_usage(&mut sys);
-        print_memory_info(&mut sys);
-        println!("\nPress Ctrl+C to exit...");
-        std::thread::sleep(Duration::from_secs(1));
-    }
+    print_cpu_usage(&mut sys);
+    print_memory_info(&mut sys);
 }
 
 fn print_memory_info(sys: &mut System) {
