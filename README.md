@@ -119,8 +119,40 @@ Server stopped successfully.
 ```
 If you exit the app using <kbd>Ctrl</kbd> + <kbd>C</kbd> while a server is running, its attributes backed up in `backups/server_logs.json` will be restored when you next launch the cli.
 
+### Redis support
+Since many gunicorn servers utilize `redis`, it is supported in this application.
+```bash
+>>> flush
+
+>>> list
+[INFO] Listing all available servers
+[INFO] [*]: Running | [ ]: Not running 
+
+>>> redis -F . -P 9000 # add one redis server that runs on port 9000
+                       # F here specifies the path to redis.conf
+                       # If you don't have one, it'll automatically use the default config file
+Server added successfully.
+>>> list
+[INFO] Listing all available servers
+[INFO] [*]: Running | [ ]: Not running 
+
+[ ] Name: redis-server | Address: 127.0.0.1:9000 | Workers: 1 | Timeout: 30s | PID: 0 |
+```
+You can add multiple redis servers as long as they run on different ports
+```bash
+>>> redis -F ..
+Server added successfully.
+>>> list
+[INFO] Listing all available servers
+[INFO] [*]: Running | [ ]: Not running 
+
+[ ] Name: redis-server | Address: 127.0.0.1:9000 | Workers: 1 | Timeout: 30s | PID: 0 |
+[ ] Name: redis-server-2 | Address: 127.0.0.1:6379 | Workers: 1 | Timeout: 30s | PID: 0 |
+```
+You can then start redis servers the same way as gunicorn servers.
+
 ## Contributing
 Contributions are welcome! Just create a branch, make your changes and create a pull request.
 
 ## License
-Distributed under the MIT License. See LICENSE for more information.
+Distributed under the GNU v3.0 License. See LICENSE for more information.

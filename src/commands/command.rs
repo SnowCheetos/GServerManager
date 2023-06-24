@@ -22,9 +22,6 @@ pub enum Command {
 
         #[structopt(short="T", long, default_value = "30")]
         timeout: u32,
-
-        // #[structopt(long="L", parse(from_os_str))]
-        // original_dir: PathBuf,
     },
 
     #[structopt(name = "remove")]
@@ -92,6 +89,19 @@ pub enum Command {
         #[structopt(short="U", long)]
         remote_url: String
     },
+
+    #[structopt(name = "redis")]
+    Redis {
+        #[structopt(short="F", long, parse(from_os_str))]
+        path: PathBuf,
+
+        #[structopt(short="H", long, default_value = "127.0.0.1")]
+        host: String,
+
+        #[structopt(short="P", long, default_value = "6379")]
+        port: u32
+    },
+
 
     #[structopt(name = "hardware")]
     Hardware, // Show hardware usage
