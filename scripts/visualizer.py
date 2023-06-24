@@ -1,5 +1,6 @@
 import re
 import argparse
+import datetime
 import pandas as pd
 import matplotlib.pyplot as plt
 
@@ -8,6 +9,7 @@ filter_pattern = r'Starting gunicorn|Shutting down: Master'
 
 parser = argparse.ArgumentParser(description='Log Visualizer')
 parser.add_argument('log_file', type=str, help='Path to the log file')
+parser.add_argument('export', type=str, help='Whether or not to export the image')
 args = parser.parse_args()
 
 columns = ['Timestamp', 'PID', 'LogLevel', 'Message']
@@ -50,4 +52,9 @@ plt.xlabel('Hour')
 plt.ylabel('Hour')
 
 plt.tight_layout()
+
+if eval(args.export):
+    current_datetime = datetime.datetime.now()
+    plt.savefig(f"data/{args.log_file.split('/')[-1].split('.')[0]}-{current_datetime.strftime('%Y-%m-%d_%H-%M-%S')}.png")
+
 plt.show()

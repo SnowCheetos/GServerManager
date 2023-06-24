@@ -141,9 +141,16 @@ impl ServerManager {
                 }
             },
 
-            Some(Command::Visualize { name }) => {
+            Some(Command::Visualize { name, export }) => {
                 if let Some(servers) = &mut self.servers {
-                    servers.visualize(name);
+                    match export {
+                        Some(export) => {
+                            servers.visualize(name, export);
+                        },
+                        None => {
+                            servers.visualize(name, &false);
+                        }
+                    }
                 }
             },
 

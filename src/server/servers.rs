@@ -227,14 +227,20 @@ impl Servers {
         self.servers = servers_data.into_iter().map(|data| data.into()).collect();
     }
 
-    pub fn visualize(&self, name: &str) {
+    pub fn visualize(&self, name: &str, export: &bool) {
         let index = self.servers.iter().position(|s| s.name == name);
         if let Some(index) = index {
             let log_path = self.servers[index].path.join("gunicorn.log");
+            let export_arg = if *export {
+                String::from("True")
+            } else {
+                String::from("False")
+            };
             if log_path.exists() {
                 let output = Command::new("python")
                 .arg("scripts/visualizer.py")
                 .arg(log_path)
+                .arg(export_arg)
                 .output()
                 .expect("Failed to execute Python script");
                 if output.status.success() {
