@@ -23,8 +23,8 @@ pub enum Command {
         #[structopt(short="T", long, default_value = "30")]
         timeout: u32,
 
-        #[structopt(long="L", parse(from_os_str))]
-        log_file: Option<PathBuf>,
+        // #[structopt(long="L", parse(from_os_str))]
+        // original_dir: PathBuf,
     },
 
     #[structopt(name = "remove")]

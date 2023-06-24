@@ -1,6 +1,10 @@
 use crate::server::server::Server;
 use std::path::Path;
-
+use std::path::PathBuf;
+use std::fs::File;
+use std::io::prelude::*;
+use serde_json;
+use serde::{Serialize, Deserialize};
 
 #[derive(Debug)]
 pub struct Servers {
@@ -26,6 +30,7 @@ impl Servers {
         }
 
         self.servers.push(new_server);
+        self.backup();
         Ok(())
     }
 
@@ -41,6 +46,7 @@ impl Servers {
             self.servers[index].stop();
 
             self.servers.remove(index);
+            self.backup();
             Ok(())
         } else {
             Err(String::from("Server not found"))
@@ -53,7 +59,7 @@ impl Servers {
         if let Some(index) = index {
             // Safely shut down the server before removing
             self.servers[index].start();
-
+            self.backup();
             Ok(())
         } else {
             Err(String::from("Server not found"))
@@ -66,7 +72,7 @@ impl Servers {
         if let Some(index) = index {
             // Safely shut down the server before removing
             self.servers[index].stop();
-
+            self.backup();
             Ok(())
         } else {
             Err(String::from("Server not found"))
@@ -79,7 +85,7 @@ impl Servers {
         if let Some(index) = index {
             // Safely shut down the server before removing
             self.servers[index].restart();
-
+            self.backup();
             Ok(())
         } else {
             Err(String::from("Server not found"))
@@ -91,6 +97,7 @@ impl Servers {
             server.stop();
         }
         self.servers.clear();
+        self.backup();
     }
 
     pub fn monitor(&mut self, name: &str) {
@@ -110,6 +117,7 @@ impl Servers {
         if let Some(index) = index {
             // Safely shut down the server before removing
             self.servers[index].update();
+            self.backup();
         } else {
             println!("Server not found.")
         }
@@ -121,6 +129,7 @@ impl Servers {
         if let Some(index) = index {
             // Safely shut down the server before removing
             self.servers[index].git_init();
+            self.backup();
         } else {
             println!("Server not found.")
         }
@@ -187,5 +196,81 @@ impl Servers {
     // Helper function to check if a server port already exists
     fn port_exists(&self, port: u32) -> bool {
         self.servers.iter().any(|s| s.port == port)
+    }
+
+    pub fn backup(&self) {
+        let servers_data: Vec<ServerData> = self.servers.iter().map(ServerData::from).collect();
+
+        let json = serde_json::to_string(&servers_data).expect("Failed to serialize servers");
+
+        let mut file = File::create("backups/servers_backup.json").expect("Failed to create backup file");
+        file.write_all(json.as_bytes()).expect("Failed to write to backup file");
+    }
+
+    pub fn restore(&mut self) {
+        let backup_path = Path::new("backups/servers_backup.json");
+
+        // Check if the backup file exists
+        if !backup_path.exists() {
+            println!("Backup file does not exist. Assuming first launch and skipping restoration process.");
+            return;
+        }
+
+        let mut file = File::open(&backup_path)
+            .expect("Failed to open backup file");
+        let mut json = String::new();
+        file.read_to_string(&mut json).expect("Failed to read from backup file");
+
+        let servers_data: Vec<ServerData> = serde_json::from_str(&json).expect("Failed to deserialize servers");
+        self.servers = servers_data.into_iter().map(|data| data.into()).collect();
+    }
+
+}
+
+#[derive(Serialize, Deserialize)]
+struct ServerData {
+    name: String,
+    path: String,
+    host: String,
+    port: u32,
+    workers: u32,
+    timeout: u32,
+    github: bool,
+    running: bool,
+    pid: u32,
+    original_dir: PathBuf
+}
+
+impl From<&Server> for ServerData {
+    fn from(server: &Server) -> Self {
+        Self {
+            name: server.name.clone(),
+            path: server.path.to_str().unwrap().to_string(),
+            host: server.host.clone(),
+            port: server.port,
+            workers: server.workers,
+            timeout: server.timeout,
+            github: server.github,
+            running: server.running,
+            pid: server.pid,
+            original_dir: server.original_dir.clone()
+        }
+    }
+}
+
+impl Into<Server> for ServerData {
+    fn into(self) -> Server {
+        Server {
+            name: self.name,
+            path: PathBuf::from(self.path),
+            host: self.host,
+            port: self.port,
+            workers: self.workers,
+            timeout: self.timeout,
+            github: self.github,
+            running: self.running,
+            pid: self.pid,
+            original_dir: self.original_dir
+        }
     }
 }

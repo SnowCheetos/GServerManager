@@ -8,6 +8,7 @@ use std::process::exit;
 use crate::utils::build;
 use crate::github::utils;
 
+
 #[derive(Clone, Debug)]
 pub struct Server {
     pub name: String, // The name given to the server
@@ -18,7 +19,8 @@ pub struct Server {
     pub timeout: u32, // Worker timeout value, default 30 seconds
     pub github: bool, // Whether or not the directory is linked to a git repository
     pub running: bool, // Whether or not the server is currently running
-    pub pid: u32 // The PID of the server master worker
+    pub pid: u32, // The PID of the server master worker
+    pub original_dir: PathBuf // The original directory when the application was started
 }
 
 impl Server {
@@ -73,6 +75,8 @@ impl Server {
             self.pid = child.id();
 
             self.running = true;
+
+            env::set_current_dir(&self.original_dir).unwrap();
         } else {
             println!("Not a valid server directory.")
         }
@@ -114,6 +118,7 @@ impl Server {
     pub fn update(&mut self) {
         // Update the server
         if self.github && self.is_valid() {
+            env::set_current_dir(&self.path).unwrap();
             // Pull the latest changes from the Git repository
             if let Err(e) = utils::git_pull(&self.path) {
                 println!("Failed to pull the latest changes from the Git repository: {}", e);
@@ -148,6 +153,7 @@ impl Server {
             } else {
                 println!("No C++ source files or CMakeLists.txt changes found.");
             }
+            env::set_current_dir(&self.original_dir).unwrap();
         } else {
             println!("Not a valid git repository.");
         }
@@ -155,6 +161,7 @@ impl Server {
 
     pub fn monitor(&self) {
         if self.running {
+            env::set_current_dir(&self.path).unwrap();
             let monitor_command = format!("cat {}", "gunicorn.log");
     
             let output = Command::new("sh")
@@ -170,6 +177,7 @@ impl Server {
                 let stderr = String::from_utf8_lossy(&output.stderr);
                 println!("Failed to retrieve server logs:\n{}", stderr);
             }
+            env::set_current_dir(&self.original_dir).unwrap();
         } else {
             println!("Server is not currently running.")
         }
