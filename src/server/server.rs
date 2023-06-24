@@ -5,8 +5,8 @@ use std::process::{Command, Child};
 use nix::sys::signal::{kill, Signal};
 use nix::unistd::Pid;
 use std::process::exit;
-use crate::utils::build::{contains_compiled_files, compile_and_install_project};
-use crate::github::utils{git_pull, git_diff_name_only};
+use crate::utils::build::{contains_compiled_files, compile_and_install_project, run_cmake};
+use crate::github::utils::{git_pull, git_diff_name_only, initialize_git_repository, add_remote_origin};
 
 #[derive(Clone, Debug)]
 pub struct Server {
@@ -34,14 +34,14 @@ impl Server {
 
     pub fn git_init(&mut self) {
         if !self.github {
-            utils::initialize_git_repository(&self.path);
+            initialize_git_repository(&self.path);
         } else {
             println!("Directory already connect to git.")
         }
     }
 
     pub fn git_set_origin(&mut self, remote_url: &str) {
-        utils::add_remote_origin(&self.path, remote_url);
+        add_remote_origin(&self.path, remote_url);
     }
 
     pub fn start(&mut self) {
@@ -160,10 +160,15 @@ impl Server {
     pub fn update(&mut self) {
         // Update the server
         if self.github && self.is_valid() {
-            env::set_current_dir(&self.original_dir).unwrap();
-            // env::set_current_dir(&self.path).unwrap();
             // Pull the latest changes from the Git repository
-            if let Err(e) = git_pull(&self.path) {
+            let pull_result;
+            {
+                env::set_current_dir(&self.path).unwrap();
+                pull_result = git_pull(&self.path);
+                env::set_current_dir(&self.original_dir).unwrap();
+            }
+            
+            if let Err(e) = pull_result {
                 println!("Failed to pull the latest changes from the Git repository: {}", e);
                 return;
             }
@@ -181,30 +186,35 @@ impl Server {
     
                 if diff_output.contains("CMakeLists.txt") {
                     println!("CMakeLists.txt has changed, re-running cmake...");
-                    if let Err(e) = build::run_cmake(&self.path) {
+                    {
+                        env::set_current_dir(&self.path).unwrap();
+                        let result = run_cmake(&self.path);
                         env::set_current_dir(&self.original_dir).unwrap();
-                        println!("Failed to run cmake: {}", e);
-                        return;
+                        if let Err(e) = result {
+                            println!("Failed to run cmake: {}", e);
+                            return;
+                        }
                     }
-                    env::set_current_dir(&self.original_dir).unwrap();
                 }
     
-                if let Err(e) = compile_and_install_project(&self.path) {
+                {
+                    env::set_current_dir(&self.path).unwrap();
+                    let result = compile_and_install_project(&self.path);
                     env::set_current_dir(&self.original_dir).unwrap();
-                    println!("Failed to compile and install the project: {}", e);
-                    return;
+                    if let Err(e) = result {
+                        println!("Failed to compile and install the project: {}", e);
+                        return;
+                    }
                 }
-                env::set_current_dir(&self.original_dir).unwrap();
     
                 println!("Update completed successfully.");
             } else {
                 println!("No C++ source files or CMakeLists.txt changes found.");
             }
-            // env::set_current_dir(&self.original_dir).unwrap();
         } else {
             println!("Not a valid git repository.");
         }
-    }
+    }    
 
     pub fn monitor(&self) {
         if self.running && self.name != "redis-server" {
