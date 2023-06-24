@@ -63,6 +63,12 @@ pub enum Command {
         name: String,
     },
 
+    #[structopt(name = "clear_logs")]
+    ClearLogs {
+        #[structopt(short="N", long)]
+        name: String,
+    },
+
     #[structopt(name = "git_init")]
     GitInit {
         #[structopt(short="N", long)]

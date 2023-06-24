@@ -42,7 +42,7 @@ impl ServerManager {
                     timeout: *timeout,
                     github: utils::is_git_repository(path),
                     running: false,
-                    pid: 0,
+                    pid: 0
                 };
                 if let Some(servers) = &mut self.servers {
                     match servers.add_server(server) {
@@ -125,6 +125,12 @@ impl ServerManager {
             Some(Command::Update { name }) => {
                 if let Some(servers) = &mut self.servers {
                     servers.update(name);
+                }
+            },
+
+            Some(Command::ClearLogs { name }) => {
+                if let Some(servers) = &mut self.servers {
+                    servers.clear_logs(name);
                 }
             },
 

@@ -4,20 +4,9 @@ use std::path::Path;
 use std::process::{Command, Child};
 use nix::sys::signal::{kill, Signal};
 use nix::unistd::Pid;
-use std::sync::atomic::{AtomicBool, Ordering};
-use std::sync::Arc;
-use signal_hook::consts::signal::*;
-use signal_hook::flag;
-use std::thread;
-use std::time::Duration;
 use std::process::exit;
-use std::io::{self, BufRead, BufReader};
-use std::process::Stdio;
 use crate::utils::build;
 use crate::github::utils;
-
-use ctrlc;
-
 
 #[derive(Clone, Debug)]
 pub struct Server {
@@ -29,7 +18,7 @@ pub struct Server {
     pub timeout: u32, // Worker timeout value, default 30 seconds
     pub github: bool, // Whether or not the directory is linked to a git repository
     pub running: bool, // Whether or not the server is currently running
-    pub pid: u32, // The PID of the server master worker
+    pub pid: u32 // The PID of the server master worker
 }
 
 impl Server {
@@ -166,38 +155,33 @@ impl Server {
 
     pub fn monitor(&self) {
         if self.running {
-            let monitor_command = format!("tail -f {}", "gunicorn.log");
+            let monitor_command = format!("cat {}", "gunicorn.log");
     
-            let process = Command::new("sh")
+            let output = Command::new("sh")
                 .arg("-c")
                 .arg(&monitor_command)
-                .stdout(Stdio::piped())
-                .spawn()
-                .expect("Failed to monitor the server.");
+                .output()
+                .expect("Failed to retrieve server logs.");
     
-            let stdout = process.stdout.expect("Failed to capture stdout.");
-            let reader = BufReader::new(stdout);
-    
-            println!("Monitoring server... Press Ctrl+C to stop.");
-    
-            let term = Arc::new(AtomicBool::new(false));
-            let term_clone = Arc::clone(&term);
-    
-            ctrlc::set_handler(move || {
-                term_clone.store(true, Ordering::Relaxed);
-            })
-            .expect("Failed to set Ctrl+C handler");
-    
-            for line in reader.lines() {
-                if term.load(Ordering::Relaxed) {
-                    break;
-                }
-                if let Ok(line) = line {
-                    println!("{}", line);
-                }
+            if output.status.success() {
+                let stdout = String::from_utf8_lossy(&output.stdout);
+                println!("{}", stdout);
+            } else {
+                let stderr = String::from_utf8_lossy(&output.stderr);
+                println!("Failed to retrieve server logs:\n{}", stderr);
             }
         } else {
             println!("Server is not currently running.")
         }
-    }
+    }   
+    
+    pub fn clear_logs(&mut self) {
+        let delete_command = format!("rm {} && touch {}", "gunicorn.log", "gunicorn.log");
+        let status = Command::new("sh")
+            .arg("-c")
+            .arg(&delete_command)
+            .status()
+            .expect("Failed to remove server logs.");
+
+    }        
 }
