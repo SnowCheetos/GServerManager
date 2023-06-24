@@ -6,6 +6,9 @@ use termion::{color, style};
 use crate::commands::command::Command;
 use crate::server::server::Server;
 use crate::server::servers::Servers;
+use crate::utils::hardware;
+use crate::github::utils;
+
 
 #[derive(Debug, StructOpt)]
 #[structopt(name = "Server Manager", about = "Manage your servers")]
@@ -37,7 +40,7 @@ impl ServerManager {
                     port: *port,
                     workers: *workers,
                     timeout: *timeout,
-                    github: false,
+                    github: utils::is_git_repository(path),
                     running: false,
                     pid: 0,
                 };
@@ -85,7 +88,47 @@ impl ServerManager {
                 }
             },
 
-            _ => {
+            Some(Command::List {}) => {
+                if let Some(servers) = &mut self.servers {
+                    servers.list_all();
+                }
+            },
+
+            Some(Command::Flush {}) => {
+                if let Some(servers) = &mut self.servers {
+                    servers.flush();
+                }
+            },
+
+            Some(Command::Monitor { name }) => {
+                if let Some(servers) = &mut self.servers {
+                    servers.monitor(name);
+                }
+            },
+
+            Some(Command::Hardware {}) => {
+                hardware::monitor_system_info();
+            },
+
+            Some(Command::GitInit { name }) => {
+                if let Some(servers) = &mut self.servers {
+                    servers.git_init(name);
+                }
+            },
+
+            Some(Command::AddOrigin { name, remote_url }) => {
+                if let Some(servers) = &mut self.servers {
+                    servers.add_origin(name, remote_url);
+                }
+            },
+
+            Some(Command::Update { name }) => {
+                if let Some(servers) = &mut self.servers {
+                    servers.update(name);
+                }
+            },
+
+            None => {
                 println!("No command provided. Use --help to see available commands.");
                 // You can choose to exit gracefully or continue the program flow here
             }

@@ -1,9 +1,10 @@
-use std::io::{stdin, stdout, Write};
+use std::io::{stdout, Write};
 use structopt::StructOpt;
 use GServerManager::server::servers::Servers;
 use GServerManager::commands::manager::ServerManager;
 use GServerManager::commands::command::Command;
-
+use rustyline::error::ReadlineError;
+use rustyline::Editor;
 
 fn main() {
     let mut manager = ServerManager::from_args();
@@ -11,29 +12,44 @@ fn main() {
         servers: Vec::new(),
     });
 
+    let mut rl = Editor::<()>::new();
+
     loop {
-        print!(">>> ");
-        stdout().flush().unwrap();
+        let readline = rl.readline(">>> ");
 
-        let mut input = String::new();
-        stdin().read_line(&mut input).unwrap();
-        let input = input.trim_end();
+        match readline {
+            Ok(input) => {
+                rl.add_history_entry(input.as_str());
 
-        if input == "quit" || input == "exit" {
-            servers.flush();
-            break;
-        }
+                if input == "quit" || input == "exit" {
+                    manager.servers.expect("REASON").flush();
+                    break;
+                }
 
-        let input = format!("{} {}", std::env::args().next().unwrap(), input);
-        let result = Command::from_iter_safe(input.split_whitespace());
+                let input = format!("{} {}", std::env::args().next().unwrap(), input);
+                let result = Command::from_iter_safe(input.split_whitespace());
 
-        match result {
-            Ok(cmd) => {
-                manager.cmd = Some(cmd);
-                manager.execute();
+                match result {
+                    Ok(cmd) => {
+                        manager.cmd = Some(cmd);
+                        manager.execute();
+                    }
+                    Err(error) => {
+                        println!("Invalid command: {}", error);
+                    }
+                }
             }
-            Err(error) => {
-                println!("Invalid command: {}", error);
+            Err(ReadlineError::Interrupted) => {
+                println!("CTRL-C");
+                break;
+            }
+            Err(ReadlineError::Eof) => {
+                println!("CTRL-D");
+                break;
+            }
+            Err(err) => {
+                println!("Error: {:?}", err);
+                break;
             }
         }
     }
