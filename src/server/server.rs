@@ -184,12 +184,13 @@ impl Server {
     }   
     
     pub fn clear_logs(&mut self) {
+        env::set_current_dir(&self.path).unwrap();
         let delete_command = format!("rm {} && touch {}", "gunicorn.log", "gunicorn.log");
         let status = Command::new("sh")
             .arg("-c")
             .arg(&delete_command)
             .status()
             .expect("Failed to remove server logs.");
-
+        env::set_current_dir(&self.original_dir).unwrap();
     }        
 }

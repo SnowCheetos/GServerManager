@@ -2,7 +2,7 @@
 
 ## Description
 
-GServerManager is an interactive command-line interface (CLI) tool for managing multiple `gunicorn` servers. It allows users to add, remove, start, stop, restart, monitor, update servers, manage server logs, and handle servers' GitHub settings. The tool is built using `Rust`, and is designed to be intuitive and easy to use.
+GServerManager is an interactive command-line interface (CLI) tool for managing multiple `gunicorn` servers. It allows users to add, remove, start, stop, restart, monitor, update servers, manage server logs, and handle servers' GitHub settings. The tool is built using `Rust`, and is designed to be intuitive and easy to use. It also provides event-triggered backups and visualization tools, making it much easier to manage multiple servers on the same machine.
 
 ## Getting Started
 
@@ -30,6 +30,7 @@ After building the project, you can start using the `GServerManager`. Below are 
 * `hardware`: Show hardware usage.
 * `list`: List all servers.
 * `flush`: Stop and remove all servers.
+* `visualize`: Visualize server logs.
 
 Each command has additional options that can be viewed by using the -h option with the command, like so: `command -h`.
 
