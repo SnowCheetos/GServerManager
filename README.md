@@ -80,6 +80,36 @@ Server started successfully.
 
 [*] Name: test | Address: 0.0.0.0:8000 | Workers: 4 | Timeout: 30s | PID: 74578 |
 ```
+### Server log visualizations
+```bash
+>>> visualize -N test -E true # exports image and parsed logs
+```
+![](media/demo.jpg)
+### Example of server and event logs which will be saved in `data/logs`
+* **Server Logs**
+```yaml
+| Type   | Timestamp                 | IP          | RequestMethod | Endpoint | ResponseCode | UserAgent                                                                                                             |
+|--------|---------------------------|-------------|---------------|----------|--------------|-----------------------------------------------------------------------------------------------------------------------|
+| Server | 2023-06-24 02:37:00-05:00 | 127.0.0.1   | GET           | /        | 200          | Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36 |
+| Server | 2023-06-24 02:37:00-05:00 | 127.0.0.1   | GET           | /        | 200          | Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36 |
+| Server | 2023-06-24 02:37:00-05:00 | 127.0.0.1   | GET           | /        | 200          | Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36 |
+| Server | 2023-06-24 02:37:00-05:00 | 127.0.0.1   | GET           | /        | 200          | Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36 |
+
+```
+* **Event Logs**
+```yaml
+|      | Type  | Timestamp                 | PID   | RequestMethod | Message                                          |
+|------|-------|---------------------------|-------|---------------|--------------------------------------------------|
+| 3    | Event | 2023-06-24 02:37:51-05:00 | 80925 | INFO          | Booting worker with pid: 80925                   |
+| 4    | Event | 2023-06-24 02:37:51-05:00 | 80926 | INFO          | Booting worker with pid: 80926                   |
+| 5    | Event | 2023-06-24 02:37:51-05:00 | 80927 | INFO          | Booting worker with pid: 80927                   |
+| 6    | Event | 2023-06-24 02:37:51-05:00 | 80928 | INFO          | Booting worker with pid: 80928                   |
+| 7    | Event | 2023-06-24 02:38:28-05:00 | 80924 | CRITICAL      | WORKER TIMEOUT (pid:80927)                       |
+| 8    | Event | 2023-06-24 02:38:28-05:00 | 80927 | INFO          | Worker exiting (pid: 80927)                      |
+| 9    | Event | 2023-06-24 02:38:28-05:00 | 80992 | INFO          | Booting worker with pid: 80992                   |
+| 10   | Event | 2023-06-24 02:58:43-05:00 | 80926 | INFO          | Worker exiting (pid: 80926)                      |
+| 11   | Event | 2023-06-24 02:58:43-05:00 | 80925 | INFO          | Worker exiting (pid: 80925)                      |
+```
 ### Stopping a server and exiting
 ```bash
 >>> stop -N test
@@ -87,6 +117,7 @@ Stopping...
 Server stopped successfully.
 >>> exit
 ```
+If you exit the app using <kbd>Ctrl</kbd> + <kbd>C</kbd> while a server is running, its attributes backed up in `backups/server_logs.json` will be restored when you next launch the cli.
 
 ## Contributing
 Contributions are welcome! Just create a branch, make your changes and create a pull request.
