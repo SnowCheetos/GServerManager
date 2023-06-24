@@ -18,7 +18,7 @@ if len(s_df) > 0 and len(e_df) > 0:
         current_datetime = datetime.datetime.now()
         s_df.to_csv(f"data/logs/{args.log_file.split('/')[-1].split('.')[0]}-{current_datetime.strftime('%Y-%m-%d_%H-%M-%S')}-Server-Logs.csv")
         e_df.to_csv(f"data/logs/{args.log_file.split('/')[-1].split('.')[0]}-{current_datetime.strftime('%Y-%m-%d_%H-%M-%S')}-Event-Logs.csv")
-        plt.savefig(f"data/figures/{args.log_file.split('/')[-1].split('.')[0]}-{current_datetime.strftime('%Y-%m-%d_%H-%M-%S')}.png")
+        plt.savefig(f"data/figures/{args.log_file.split('/')[-1].split('.')[0]}-{current_datetime.strftime('%Y-%m-%d_%H-%M-%S')}.jpeg")
     plt.show()
 else:
     print(" Empty log file.")

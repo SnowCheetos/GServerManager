@@ -1,3 +1,5 @@
+![](media/logo.png)
+
 # GServerManager
 
 ## Description
