@@ -160,7 +160,8 @@ impl Server {
     pub fn update(&mut self) {
         // Update the server
         if self.github && self.is_valid() {
-            env::set_current_dir(&self.path).unwrap();
+            env::set_current_dir(&self.original_dir).unwrap();
+            // env::set_current_dir(&self.path).unwrap();
             // Pull the latest changes from the Git repository
             if let Err(e) = utils::git_pull(&self.path) {
                 println!("Failed to pull the latest changes from the Git repository: {}", e);
@@ -181,21 +182,25 @@ impl Server {
                 if diff_output.contains("CMakeLists.txt") {
                     println!("CMakeLists.txt has changed, re-running cmake...");
                     if let Err(e) = build::run_cmake(&self.path) {
+                        env::set_current_dir(&self.original_dir).unwrap();
                         println!("Failed to run cmake: {}", e);
                         return;
                     }
+                    env::set_current_dir(&self.original_dir).unwrap();
                 }
     
                 if let Err(e) = build::compile_and_install_project(&self.path) {
+                    env::set_current_dir(&self.original_dir).unwrap();
                     println!("Failed to compile and install the project: {}", e);
                     return;
                 }
+                env::set_current_dir(&self.original_dir).unwrap();
     
                 println!("Update completed successfully.");
             } else {
                 println!("No C++ source files or CMakeLists.txt changes found.");
             }
-            env::set_current_dir(&self.original_dir).unwrap();
+            // env::set_current_dir(&self.original_dir).unwrap();
         } else {
             println!("Not a valid git repository.");
         }
