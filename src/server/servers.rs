@@ -186,7 +186,7 @@ impl Servers {
     }
 
     // Helper function to check if a server name already exists
-    fn name_exists(&self, name: &str) -> bool {
+    pub fn name_exists(&self, name: &str) -> bool {
         self.servers.iter().any(|s| s.name == name)
     }
 

@@ -39,6 +39,10 @@ impl ServerManager {
                     println!("Invalid server path");
                     return;
                 }
+                if name.to_lowercase() == "redis-server" || name.to_lowercase() == "redis" {
+                    println!("Name reserved for Redis, use `redis --path [path to redis config file]` instead.");
+                    return;
+                }
                 let server = Server {
                     name: name.clone(),
                     path: path.clone(),
@@ -154,9 +158,43 @@ impl ServerManager {
                 }
             },
 
+            Some(Command::Redis { path, host, port }) => {
+                if !path.exists() || !path.is_dir() {
+                    println!("Invalid redis config path");
+                    return;
+                }
+                let mut name = String::from("redis-server");
+                if let Some(servers) = &self.servers {
+                    let mut counter = 1;
+                    
+                    // Check if the name already exists
+                    while servers.name_exists(&name) {
+                        counter += 1;
+                        name = format!("redis-server-{}", counter);
+                    }
+                }
+                let server = Server {
+                    name: name.clone(),
+                    path: path.clone(),
+                    host: host.clone(),
+                    port: *port,
+                    workers: 1,
+                    timeout: 30,
+                    github: utils::is_git_repository(path),
+                    running: false,
+                    pid: 0,
+                    original_dir: _original_dir.to_path_buf()
+                };
+                if let Some(servers) = &mut self.servers {
+                    match servers.add_server(server) {
+                        Ok(()) => println!("Server added successfully."),
+                        Err(e) => println!("Failed to add server: {}", e),
+                    }
+                }
+            },
+
             None => {
                 println!("No command provided. Use --help to see available commands.");
-                // You can choose to exit gracefully or continue the program flow here
             }
         }
     }
