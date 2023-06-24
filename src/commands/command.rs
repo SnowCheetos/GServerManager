@@ -63,6 +63,21 @@ pub enum Command {
         name: String,
     },
 
+    #[structopt(name = "git_init")]
+    GitInit {
+        #[structopt(short="N", long)]
+        name: String,
+    },
+
+    #[structopt(name = "add_origin")]
+    AddOrigin {
+        #[structopt(short="N", long)]
+        name: String,
+
+        #[structopt(short="U", long)]
+        remote_url: String
+    },
+
     #[structopt(name = "hardware")]
     Hardware, // Show hardware usage
 

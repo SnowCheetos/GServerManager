@@ -42,6 +42,18 @@ impl Server {
         }
     }
 
+    pub fn git_init(&mut self) {
+        if !self.github {
+            utils::initialize_git_repository(&self.path);
+        } else {
+            println!("Directory already connect to git.")
+        }
+    }
+
+    pub fn git_set_origin(&mut self, remote_url: &str) {
+        utils::add_remote_origin(&self.path, remote_url);
+    }
+
     pub fn start(&mut self) {
         // Start the server
         if self.is_valid() {

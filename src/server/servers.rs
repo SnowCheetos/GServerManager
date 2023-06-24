@@ -104,6 +104,39 @@ impl Servers {
         }
     }
 
+    pub fn update(&mut self, name: &str) {
+        let index = self.servers.iter().position(|s| s.name == name);
+
+        if let Some(index) = index {
+            // Safely shut down the server before removing
+            self.servers[index].update();
+        } else {
+            println!("Server not found.")
+        }
+    }
+
+    pub fn git_init(&mut self, name: &str) {
+        let index = self.servers.iter().position(|s| s.name == name);
+
+        if let Some(index) = index {
+            // Safely shut down the server before removing
+            self.servers[index].git_init();
+        } else {
+            println!("Server not found.")
+        }
+    }
+
+    pub fn add_origin(&mut self, name: &str, remote_url: &str) {
+        let index = self.servers.iter().position(|s| s.name == name);
+
+        if let Some(index) = index {
+            // Safely shut down the server before removing
+            self.servers[index].git_set_origin(remote_url);
+        } else {
+            println!("Server not found.")
+        }
+    }
+
     pub fn list_all(&mut self) {
         println!("[INFO] Listing all available servers");
         println!("[INFO] [*]: Running | [ ]: Not running \n");

@@ -110,7 +110,25 @@ impl ServerManager {
                 hardware::monitor_system_info();
             },
 
-            _ => {
+            Some(Command::GitInit { name }) => {
+                if let Some(servers) = &mut self.servers {
+                    servers.git_init(name);
+                }
+            },
+
+            Some(Command::AddOrigin { name, remote_url }) => {
+                if let Some(servers) = &mut self.servers {
+                    servers.add_origin(name, remote_url);
+                }
+            },
+
+            Some(Command::Update { name }) => {
+                if let Some(servers) = &mut self.servers {
+                    servers.update(name);
+                }
+            },
+
+            None => {
                 println!("No command provided. Use --help to see available commands.");
                 // You can choose to exit gracefully or continue the program flow here
             }
