@@ -10,7 +10,7 @@ mod tests {
     fn test_is_valid() {
         let server = Server {
             name: String::from("test_server"),
-            path: PathBuf::from("../TestServer"),
+            path: PathBuf::from("tests/test_servers/server1"),
             host: String::from("0.0.0.0"),
             port: 8000,
             workers: 4,
@@ -18,6 +18,7 @@ mod tests {
             github: false,
             running: false,
             pid: 0,
+            original_dir: PathBuf::from("./")
         };
 
         // Note: Make sure the server path points to a real directory containing a valid app.py or main.py file
@@ -28,7 +29,7 @@ mod tests {
     fn test_start_stop() {
         let mut server = Server {
             name: String::from("test_server"),
-            path: PathBuf::from("../TestServer"),
+            path: PathBuf::from("tests/test_servers/server1"),
             host: String::from("0.0.0.0"),
             port: 8000,
             workers: 4,
@@ -36,6 +37,7 @@ mod tests {
             github: false,
             running: false,
             pid: 0,
+            original_dir: PathBuf::from("./")
         };
 
         // Note: Make sure the server path points to a real directory containing a valid app.py or main.py file

@@ -8,7 +8,6 @@ use std::process::exit;
 use crate::utils::build;
 use crate::github::utils;
 
-
 #[derive(Clone, Debug)]
 pub struct Server {
     pub name: String, // The name given to the server
@@ -48,15 +47,13 @@ impl Server {
     pub fn start(&mut self) {
         // Start the server
         if self.is_valid() && self.name != "redis-server" {
-            // navigate to self.path
-            env::set_current_dir(&self.path).unwrap();
-
             let app: String = if self.path.join("main.py").exists() {
                 String::from("main:app")
             } else {
                 String::from("app:app")
             };
-
+            // navigate to self.path
+            env::set_current_dir(&self.path).unwrap();
             let gunicorn_command = format!("gunicorn --workers={} --bind={}:{} --timeout={} --daemon --access-logfile gunicorn.log --error-logfile gunicorn.log {}",
                                            self.workers,
                                            self.host,
