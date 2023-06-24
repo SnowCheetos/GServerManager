@@ -85,13 +85,6 @@ Server started successfully.
 >>> visualize -N test -E true # exports image and parsed logs
 ```
 ![](media/demo.jpg)
-### Stopping a server and exiting
-```bash
->>> stop -N test
-Stopping... 
-Server stopped successfully.
->>> exit
-```
 ### Example of server and event logs which will be saved in `data/logs`
 * **Server Logs**
 ```yaml
@@ -117,7 +110,14 @@ Server stopped successfully.
 | 10   | Event | 2023-06-24 02:58:43-05:00 | 80926 | INFO          | Worker exiting (pid: 80926)                      |
 | 11   | Event | 2023-06-24 02:58:43-05:00 | 80925 | INFO          | Worker exiting (pid: 80925)                      |
 ```
-
+### Stopping a server and exiting
+```bash
+>>> stop -N test
+Stopping... 
+Server stopped successfully.
+>>> exit
+```
+If you exit the app using <kbd>Ctrl</kbd> + <kbd>C</kbd> while a server is running, its attributes backed up in `backups/server_logs.json` will be restored when you next launch the cli.
 
 ## Contributing
 Contributions are welcome! Just create a branch, make your changes and create a pull request.
