@@ -8,12 +8,14 @@ GServerManager is an interactive command-line interface (CLI) tool for managing 
 
 ### Prerequisites
 * Rust Programming Language: You can download Rust from the [official website](https://www.rust-lang.org/tools/install).
+* If you would like to use the data tools provided, then `python >= 3.9` is required.
+* This application supports `redis`, if you would need to use it in your server, checkout their [official website](https://redis.io/docs/getting-started/)
 
 ### Installation
 1. Clone the repo: `git clone https://github.com/SnowCheetos/GServerManager.git`
 2. Navigate to the cloned directory: `cd GServerManager`
 3. Build the project: `cargo build --release`
-4. To use the visualizer, `python >= 3.6` is required, install dependencies via `pip install -r requirements.txt`
+4. To use the visualizer, install dependencies via `pip install -r requirements.txt`
 
 ### Usage
 After building the project, you can start using the `GServerManager`. Below are examples of the available commands:
@@ -117,13 +119,11 @@ Stopping...
 Server stopped successfully.
 >>> exit
 ```
-If you exit the app using <kbd>Ctrl</kbd> + <kbd>C</kbd> while a server is running, its attributes backed up in `backups/server_logs.json` will be restored when you next launch the cli.
+If you exit the application, all current attributes should have been backed up in `backups/server_logs.json` in a event-triggered strategy and will be restored when you next launch the application.
 
 ### Redis support
-Since many gunicorn servers utilize `redis`, it is supported in this application.
+Redis is supported in this application.
 ```bash
->>> flush
-
 >>> list
 [INFO] Listing all available servers
 [INFO] [*]: Running | [ ]: Not running 
@@ -155,4 +155,4 @@ You can then start redis servers the same way as gunicorn servers.
 Contributions are welcome! Just create a branch, make your changes and create a pull request.
 
 ## License
-Distributed under the GNU v3.0 License. See LICENSE for more information.
+Distributed under the GNU v3.0 License. See `LICENSE` for more information.
