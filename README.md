@@ -10,7 +10,7 @@ GServerManager is an interactive command-line interface (CLI) tool for managing 
 * Rust Programming Language: You can download Rust from the [official website](https://www.rust-lang.org/tools/install).
 
 ### Installation
-1. Clone the repo: `git clone https://github.com/yourusername/GServerManager.git`
+1. Clone the repo: `git clone https://github.com/SnowCheetos/GServerManager.git`
 2. Navigate to the cloned directory: `cd GServerManager`
 3. Build the project: `cargo build --release`
 
