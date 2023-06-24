@@ -1,0 +1,30 @@
+[2023-06-24 14:49:50 -0500] [374] [INFO] Starting gunicorn 20.1.0
+[2023-06-24 14:49:50 -0500] [374] [INFO] Listening at: http://0.0.0.0:9000 (374)
+[2023-06-24 14:49:50 -0500] [374] [INFO] Using worker: sync
+[2023-06-24 14:49:50 -0500] [375] [INFO] Booting worker with pid: 375
+[2023-06-24 14:49:50 -0500] [376] [INFO] Booting worker with pid: 376
+[2023-06-24 14:49:50 -0500] [377] [INFO] Booting worker with pid: 377
+[2023-06-24 14:49:50 -0500] [378] [INFO] Booting worker with pid: 378
+[2023-06-24 14:50:47 -0500] [375] [INFO] Worker exiting (pid: 375)
+[2023-06-24 14:50:47 -0500] [376] [INFO] Worker exiting (pid: 376)
+[2023-06-24 14:50:47 -0500] [377] [INFO] Worker exiting (pid: 377)
+[2023-06-24 14:50:47 -0500] [374] [INFO] Handling signal: term
+[2023-06-24 14:50:47 -0500] [378] [INFO] Worker exiting (pid: 378)
+[2023-06-24 14:50:47 -0500] [374] [WARNING] Worker with pid 375 was terminated due to signal 15
+[2023-06-24 14:50:47 -0500] [374] [INFO] Shutting down: Master
+[2023-06-24 15:04:16 -0500] [1146] [INFO] Starting gunicorn 20.1.0
+[2023-06-24 15:04:16 -0500] [1146] [INFO] Listening at: http://0.0.0.0:9000 (1146)
+[2023-06-24 15:04:16 -0500] [1146] [INFO] Using worker: sync
+[2023-06-24 15:04:16 -0500] [1147] [INFO] Booting worker with pid: 1147
+[2023-06-24 15:04:16 -0500] [1148] [INFO] Booting worker with pid: 1148
+[2023-06-24 15:04:16 -0500] [1149] [INFO] Booting worker with pid: 1149
+[2023-06-24 15:04:17 -0500] [1150] [INFO] Booting worker with pid: 1150
+[2023-06-24 15:05:26 -0500] [1147] [INFO] Worker exiting (pid: 1147)
+[2023-06-24 15:05:26 -0500] [1149] [INFO] Worker exiting (pid: 1149)
+[2023-06-24 15:05:26 -0500] [1148] [INFO] Worker exiting (pid: 1148)
+[2023-06-24 15:05:26 -0500] [1150] [INFO] Worker exiting (pid: 1150)
+[2023-06-24 15:05:26 -0500] [1146] [INFO] Handling signal: term
+[2023-06-24 15:05:26 -0500] [1146] [WARNING] Worker with pid 1149 was terminated due to signal 15
+[2023-06-24 15:05:26 -0500] [1146] [WARNING] Worker with pid 1148 was terminated due to signal 15
+[2023-06-24 15:05:26 -0500] [1146] [WARNING] Worker with pid 1147 was terminated due to signal 15
+[2023-06-24 15:05:27 -0500] [1146] [INFO] Shutting down: Master
