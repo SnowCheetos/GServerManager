@@ -8,9 +8,6 @@ use std::process::exit;
 use crate::utils::build;
 use crate::github::utils;
 
-use ctrlc;
-
-
 #[derive(Clone, Debug)]
 pub struct Server {
     pub name: String, // The name given to the server
