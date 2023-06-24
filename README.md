@@ -87,7 +87,7 @@ Server stopped successfully.
 ```
 
 ## Contributing
-Contributions are welcome! Just create a branch, make your changes and submit a pull request.
+Contributions are welcome! Just create a branch, make your changes and create a pull request.
 
 ## License
 Distributed under the MIT License. See LICENSE for more information.

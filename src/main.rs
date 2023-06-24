@@ -18,6 +18,12 @@ fn main() {
         servers: Vec::new(),
     });
 
+    if let Some(servers) = &mut manager.servers {
+        servers.restore();
+    } else {
+        println!("No servers to restore.");
+    }
+    
     let mut rl = Editor::<()>::new();
 
     loop {

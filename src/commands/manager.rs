@@ -2,6 +2,7 @@ use std::io::{self, Write};
 use std::path::PathBuf;
 use structopt::StructOpt;
 use termion::{color, style};
+use std::env;
 
 use crate::commands::command::Command;
 use crate::server::server::Server;
@@ -31,8 +32,13 @@ impl ServerManager {
     }
 
     pub fn execute(&mut self) {
+        let _original_dir = env::current_dir().unwrap();
         match &self.cmd {
-            Some(Command::Add { name, path, workers, host, port, timeout, log_file }) => {
+            Some(Command::Add { name, path, workers, host, port, timeout }) => {
+                if !path.exists() || !path.is_dir() {
+                    println!("Invalid server path");
+                    return;
+                }
                 let server = Server {
                     name: name.clone(),
                     path: path.clone(),
@@ -42,7 +48,8 @@ impl ServerManager {
                     timeout: *timeout,
                     github: utils::is_git_repository(path),
                     running: false,
-                    pid: 0
+                    pid: 0,
+                    original_dir: _original_dir.to_path_buf()
                 };
                 if let Some(servers) = &mut self.servers {
                     match servers.add_server(server) {
