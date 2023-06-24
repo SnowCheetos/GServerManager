@@ -10,7 +10,7 @@ fn main() {
     println!("╔════════════════════════════════════════════════════╗");
     println!("║             Welcome to GServerManager              ║");
     println!("╠════════════════════════════════════════════════════╣");
-    println!("║     This is a CLI tool for managing servers.       ║");
+    println!("║  This is a CLI tool for managing Gunicorn servers. ║");
     println!("║   Use '-h' command to see the available options.   ║");
     println!("╚════════════════════════════════════════════════════╝");
     let mut manager = ServerManager::from_args();
