@@ -141,6 +141,12 @@ impl ServerManager {
                 }
             },
 
+            Some(Command::Visualize { name }) => {
+                if let Some(servers) = &mut self.servers {
+                    servers.visualize(name);
+                }
+            },
+
             None => {
                 println!("No command provided. Use --help to see available commands.");
                 // You can choose to exit gracefully or continue the program flow here

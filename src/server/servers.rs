@@ -5,6 +5,8 @@ use std::fs::File;
 use std::io::prelude::*;
 use serde_json;
 use serde::{Serialize, Deserialize};
+use std::process::Command;
+
 
 #[derive(Debug)]
 pub struct Servers {
@@ -223,6 +225,36 @@ impl Servers {
 
         let servers_data: Vec<ServerData> = serde_json::from_str(&json).expect("Failed to deserialize servers");
         self.servers = servers_data.into_iter().map(|data| data.into()).collect();
+    }
+
+    pub fn visualize(&self, name: &str) {
+        let index = self.servers.iter().position(|s| s.name == name);
+        if let Some(index) = index {
+            let log_path = self.servers[index].path.join("gunicorn.log");
+            if log_path.exists() {
+                let output = Command::new("python")
+                .arg("scripts/visualizer.py")
+                .arg(log_path)
+                .output()
+                .expect("Failed to execute Python script");
+                if output.status.success() {
+                    let stdout = String::from_utf8_lossy(&output.stdout);
+                    let stderr = String::from_utf8_lossy(&output.stderr);
+            
+                    println!("Python script executed successfully:");
+                    println!("Output:{}", stdout);
+                    println!("Errors:{}", stderr);
+                } else {
+                    let stderr = String::from_utf8_lossy(&output.stderr);
+                    eprintln!("Failed to execute Python script:");
+                    eprintln!("{}", stderr);
+                }
+            } else {
+                println!("Log file unavailable.")
+            }
+        } else {
+            println!("Server not found.")
+        }
     }
 
 }
