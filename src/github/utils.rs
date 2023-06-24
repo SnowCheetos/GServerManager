@@ -28,6 +28,7 @@ pub fn initialize_git_repository(path: &Path) -> Result<(), String> {
 }
 
 pub fn add_remote_origin(path: &Path, remote_url: &str) -> Result<(), String> {
+    println!("{}", path.display());
     let output = Command::new("git")
         .args(&["remote", "add", "origin", remote_url])
         .current_dir(path)
