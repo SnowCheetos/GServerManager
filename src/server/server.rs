@@ -5,8 +5,8 @@ use std::process::{Command, Child};
 use nix::sys::signal::{kill, Signal};
 use nix::unistd::Pid;
 use std::process::exit;
-use crate::utils::build;
-use crate::github::utils;
+use crate::utils::build::{contains_compiled_files, compile_and_install_project};
+use crate::github::utils{git_pull, git_diff_name_only};
 
 #[derive(Clone, Debug)]
 pub struct Server {
@@ -163,12 +163,12 @@ impl Server {
             env::set_current_dir(&self.original_dir).unwrap();
             // env::set_current_dir(&self.path).unwrap();
             // Pull the latest changes from the Git repository
-            if let Err(e) = utils::git_pull(&self.path) {
+            if let Err(e) = git_pull(&self.path) {
                 println!("Failed to pull the latest changes from the Git repository: {}", e);
                 return;
             }
     
-            let diff_output = match utils::git_diff_name_only("HEAD", "HEAD~1", &self.path) {
+            let diff_output = match git_diff_name_only("HEAD", "HEAD~1", &self.path) {
                 Ok(output) => output,
                 Err(e) => {
                     println!("Failed to get the diff: {}", e);
@@ -176,7 +176,7 @@ impl Server {
                 }
             };
     
-            if build::contains_compiled_files(&diff_output) {
+            if contains_compiled_files(&diff_output) {
                 println!("C++ source files or CMakeLists.txt have changed, rebuilding...");
     
                 if diff_output.contains("CMakeLists.txt") {
@@ -189,7 +189,7 @@ impl Server {
                     env::set_current_dir(&self.original_dir).unwrap();
                 }
     
-                if let Err(e) = build::compile_and_install_project(&self.path) {
+                if let Err(e) = compile_and_install_project(&self.path) {
                     env::set_current_dir(&self.original_dir).unwrap();
                     println!("Failed to compile and install the project: {}", e);
                     return;
