@@ -34,7 +34,7 @@ fn main() {
                 rl.add_history_entry(input.as_str());
 
                 if input == "quit" || input == "exit" {
-                    manager.servers.expect("REASON").flush();
+                    //manager.servers.expect("REASON").flush();
                     break;
                 }
 
