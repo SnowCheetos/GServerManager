@@ -7,6 +7,8 @@ use crate::commands::command::Command;
 use crate::server::server::Server;
 use crate::server::servers::Servers;
 use crate::utils::hardware;
+use crate::github::utils;
+
 
 #[derive(Debug, StructOpt)]
 #[structopt(name = "Server Manager", about = "Manage your servers")]
@@ -38,7 +40,7 @@ impl ServerManager {
                     port: *port,
                     workers: *workers,
                     timeout: *timeout,
-                    github: false,
+                    github: utils::is_git_repository(path),
                     running: false,
                     pid: 0,
                 };

@@ -13,6 +13,8 @@ use std::time::Duration;
 use std::process::exit;
 use std::io::{self, BufRead, BufReader};
 use std::process::Stdio;
+use crate::utils::build;
+use crate::github::utils;
 
 use ctrlc;
 
@@ -112,55 +114,38 @@ impl Server {
         // Update the server
         if self.github && self.is_valid() {
             // Pull the latest changes from the Git repository
-            let status = Command::new("git")
-                .args(&["pull", "origin", "master"])
-                .status()
-                .expect("Failed to pull the latest changes from the Git repository.");
-
-            if status.success() {
-                let output = Command::new("git")
-                    .args(&["diff", "--name-only", "HEAD", "HEAD~1"])
-                    .output()
-                    .expect("Failed to get the diff.");
-
-                let output_str = String::from_utf8(output.stdout).unwrap();
-
-                // Check if any C++ source files or the CMakeLists.txt file has changed
-                if output_str.contains("CMakeLists.txt") || output_str.contains("src") {
-                    println!("C++ source files or CMakeLists.txt have changed, rebuilding...");
-
-                    // Check if the CMake file has changed
-                    if output_str.contains("CMakeLists.txt") {
-                        println!("CMakeLists.txt has changed, re-running cmake...");
-                        
-                        // navigate to build directory
-                        env::set_current_dir(Path::new(&self.path).join("build")).unwrap();
-
-                        Command::new("cmake")
-                            .arg("..")
-                            .status()
-                            .expect("Failed to run cmake.");
-
-                        // return to the original directory
-                        env::set_current_dir(&self.path).unwrap();
-                    }
-
-                    // Compile the project
-                    env::set_current_dir(Path::new(&self.path).join("build")).unwrap();
-
-                    Command::new("make")
-                        .arg("-j4")
-                        .status()
-                        .expect("Failed to run make.");
-
-                    Command::new("make")
-                        .arg("install")
-                        .status()
-                        .expect("Failed to run make install.");
-
-                    // return to the original directory
-                    env::set_current_dir(&self.path).unwrap();
+            if let Err(e) = utils::git_pull(&self.path) {
+                println!("Failed to pull the latest changes from the Git repository: {}", e);
+                return;
+            }
+    
+            let diff_output = match utils::git_diff_name_only("HEAD", "HEAD~1", &self.path) {
+                Ok(output) => output,
+                Err(e) => {
+                    println!("Failed to get the diff: {}", e);
+                    return;
                 }
+            };
+    
+            if build::contains_compiled_files(&diff_output) {
+                println!("C++ source files or CMakeLists.txt have changed, rebuilding...");
+    
+                if diff_output.contains("CMakeLists.txt") {
+                    println!("CMakeLists.txt has changed, re-running cmake...");
+                    if let Err(e) = build::run_cmake(&self.path) {
+                        println!("Failed to run cmake: {}", e);
+                        return;
+                    }
+                }
+    
+                if let Err(e) = build::compile_and_install_project(&self.path) {
+                    println!("Failed to compile and install the project: {}", e);
+                    return;
+                }
+    
+                println!("Update completed successfully.");
+            } else {
+                println!("No C++ source files or CMakeLists.txt changes found.");
             }
         } else {
             println!("Not a valid git repository.");
