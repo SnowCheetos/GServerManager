@@ -39,7 +39,7 @@ impl ServerManager {
                     println!("Invalid server path");
                     return;
                 }
-                if name.to_lowercase() == "redis-server" || name.to_lowercase() == "redis" {
+                if name.to_lowercase().contains("redis") {
                     println!("Name reserved for Redis, use `redis --path [path to redis config file]` instead.");
                     return;
                 }
@@ -146,6 +146,10 @@ impl ServerManager {
             },
 
             Some(Command::Visualize { name, export }) => {
+                if name.to_lowercase().contains("redis") {
+                    println!("Visualization for Redis servers not implemented.");
+                    return;
+                }
                 if let Some(servers) = &mut self.servers {
                     match export {
                         Some(export) => {
