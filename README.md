@@ -13,6 +13,7 @@ GServerManager is an interactive command-line interface (CLI) tool for managing 
 1. Clone the repo: `git clone https://github.com/SnowCheetos/GServerManager.git`
 2. Navigate to the cloned directory: `cd GServerManager`
 3. Build the project: `cargo build --release`
+4. To use the visualizer, `python >= 3.6` is required, install dependencies via `pip install -r requirements.txt`
 
 ### Usage
 After building the project, you can start using the `GServerManager`. Below are examples of the available commands:
