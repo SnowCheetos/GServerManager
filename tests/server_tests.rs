@@ -21,7 +21,7 @@ mod tests {
         };
 
         // Note: Make sure the server path points to a real directory containing a valid app.py or main.py file
-        assert!(server.isValid());
+        assert!(server.is_valid());
     }
 
     #[test]
