@@ -2,6 +2,7 @@ use crate::server::server::Server;
 use std::path::Path;
 
 
+#[derive(Debug)]
 pub struct Servers {
     pub servers: Vec<Server>,
 }
@@ -61,7 +62,7 @@ impl Servers {
     }
 
     // Helper function to check if a server port already exists
-    fn port_exists(&self, port: i32) -> bool {
+    fn port_exists(&self, port: u32) -> bool {
         self.servers.iter().any(|s| s.port == port)
     }
 }

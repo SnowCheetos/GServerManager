@@ -10,14 +10,14 @@ use signal_hook::consts::signal::*;
 use signal_hook::flag;
 
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Server {
     pub name: String, // The name given to the server
     pub path: PathBuf, // Path to the server directory
     pub host: String, // Host address assigned, default 0.0.0.0
-    pub port: i32, // Port assigned, default 8000
-    pub workers: i32, // Number of workers used, default 4
-    pub timeout: i32, // Worker timeout value, default 30 seconds
+    pub port: u32, // Port assigned, default 8000
+    pub workers: u32, // Number of workers used, default 4
+    pub timeout: u32, // Worker timeout value, default 30 seconds
     pub github: bool, // Whether or not the directory is linked to a git repository
     pub running: bool, // Whether or not the server is currently running
     pub pid: u32, // The PID of the server master worker
@@ -71,10 +71,7 @@ impl Server {
     pub fn stop(&mut self) {
         // Stop the server
         if self.running {
-            unsafe {
-                kill(Pid::from_raw(self.pid as i32), Signal::SIGTERM).unwrap();
-            }
-
+            kill(Pid::from_raw(self.pid as i32), Signal::SIGTERM).unwrap();
             self.running = false;
         } else {
             println!("Server is not currently running.")
