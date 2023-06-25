@@ -1,12 +1,10 @@
 use std::env;
 use std::path::PathBuf;
-use std::path::Path;
-use std::process::{Command, Child};
-use nix::sys::signal::{kill, Signal};
-use nix::unistd::Pid;
-use std::process::exit;
+use std::process::Command;
 use crate::utils::build::{contains_compiled_files, compile_and_install_project, run_cmake};
 use crate::github::utils::{git_pull, git_diff_name_only, initialize_git_repository, add_remote_origin};
+use crate::server::gunicorn::{start_gunicorn, stop_gunicorn};
+use crate::server::redis::{start_redis, stop_redis};
 
 #[derive(Clone, Debug)]
 pub struct Server {
@@ -16,6 +14,7 @@ pub struct Server {
     pub port: u32, // Port assigned, default 8000
     pub workers: u32, // Number of workers used, default 4
     pub timeout: u32, // Worker timeout value, default 30 seconds
+    pub log_path: PathBuf, // Path to log file
     pub github: bool, // Whether or not the directory is linked to a git repository
     pub running: bool, // Whether or not the server is currently running
     pub pid: u32, // The PID of the server master worker
@@ -46,115 +45,54 @@ impl Server {
 
     pub fn start(&mut self) {
         // Start the server
-        if self.is_valid() && self.name != "redis-server" {
-            let app: String = if self.path.join("main.py").exists() {
-                String::from("main:app")
+        if self.is_valid() || self.name.to_lowercase().contains("redis-server") {
+            if !self.name.to_lowercase().contains("redis-server") {
+                
+                match start_gunicorn(self) {
+                    Ok(_) => println!("Gunicorn server started successfully."),
+                    Err(e) => eprintln!("Failed to start Gunicorn server: {}", e),
+                }
+
             } else {
-                String::from("app:app")
-            };
-            // navigate to self.path
-            env::set_current_dir(&self.path).unwrap();
-            let gunicorn_command = format!("gunicorn --workers={} --bind={}:{} --timeout={} --daemon --access-logfile gunicorn.log --error-logfile gunicorn.log {}",
-                                           self.workers,
-                                           self.bind,
-                                           self.port,
-                                           self.timeout,
-                                           app);
+                
+                match start_redis(self) {
+                    Ok(_) => println!("Redis server started successfully."),
+                    Err(e) => eprintln!("Failed to start Redis server: {}", e),
+                }
 
-            // Call gunicorn with the correct options
-            let child: Child = Command::new("sh")
-                .arg("-c")
-                .arg(&gunicorn_command)
-                .spawn()
-                .expect("Failed to start gunicorn server.");
-
-            // Set self.pid to the gunicorn master pid
-            self.pid = child.id();
-
-            self.running = true;
-
-            env::set_current_dir(&self.original_dir).unwrap();
-        } else if self.name == "redis-server" {
-            // redis-server ./configs/redis.conf
-            let redis_command = if self.path.join("redis.conf").exists() {
-                format!("redis-server {}/redis.conf --daemonize yes --bind {} --port {} --timeout {}", 
-                    self.path.display(),
-                    self.bind,
-                    self.port.to_string(),
-                    self.timeout.to_string()
-                )
-            } else {
-                format!(
-                    "redis-server --daemonize yes --bind {} --port {} --timeout {}",
-                    self.bind,
-                    self.port.to_string(),
-                    self.timeout.to_string()
-                )
-            };
-            let child: Child = Command::new("sh")
-                .arg("-c")
-                .arg(&redis_command)
-                .spawn()
-                .expect("Failed to start redis server.");
-            self.pid = child.id();
-            self.running = true;
+            }
         } else {
             println!("Not a valid server directory.")
         }
     }
 
     pub fn stop(&mut self) {
-        if self.running && self.name != "redis-server" {
-            // Execute the command to kill the server process
-            let output = Command::new("pkill")
-                .arg("-f")
-                .arg(format!("gunicorn --workers={} --bind={}:{}", self.workers, self.bind, self.port))
-                .output();
+        if self.running {
+            if !self.name.to_lowercase().contains("redis-server") {
+                
+                match stop_gunicorn(self) {
+                    Ok(_) => println!("Gunicorn server stopped successfully."),
+                    Err(e) => eprintln!("Failed to stop Gunicorn server: {}", e),
+                }
+                
+            } else {
+                
+                match stop_redis(self) {
+                    Ok(_) => println!("Redis server stopped successfully."),
+                    Err(e) => eprintln!("Failed to stop Redis server: {}", e),
+                }
 
-            match output {
-                Ok(output) => {
-                    if output.status.success() {
-                        self.running = false;
-                        self.pid = 0;
-                        println!("Stopping... ");
-                    } else {
-                        println!("Failed to stop server: {:?}", output.stderr);
-                    }
-                }
-                Err(e) => {
-                    println!("Failed to execute stop command: {}", e);
-                    exit(1);
-                }
-            }
-        } else if self.running && self.name == "redis-server" {
-            let output = Command::new("redis-cli")
-                .arg("-p")
-                .arg(self.port.to_string())
-                .arg("shutdown")
-                .output();
-
-            match output {
-                Ok(output) => {
-                    if output.status.success() {
-                        self.running = false;
-                        self.pid = 0;
-                        println!("Stopping Redis server...");
-                    } else {
-                        println!("Failed to stop Redis server: {:?}", output.stderr);
-                    }
-                }
-                Err(e) => {
-                    println!("Failed to execute Redis stop command: {}", e);
-                }
-            }   
+            } 
         } else {
             println!("Server not currently running.")
         }
     }    
 
     pub fn restart(&mut self) {
+
         self.stop();
         self.start();
+    
     }
 
     pub fn update(&mut self) {
@@ -218,8 +156,7 @@ impl Server {
 
     pub fn monitor(&self) {
         if self.running && self.name != "redis-server" {
-            env::set_current_dir(&self.path).unwrap();
-            let monitor_command = format!("cat {}", "gunicorn.log");
+            let monitor_command = format!("cat {}/{}.log", self.log_path.display(), self.name);
     
             let output = Command::new("sh")
                 .arg("-c")
@@ -234,7 +171,6 @@ impl Server {
                 let stderr = String::from_utf8_lossy(&output.stderr);
                 println!("Failed to retrieve server logs:\n{}", stderr);
             }
-            env::set_current_dir(&self.original_dir).unwrap();
         } else if self.name == "redis-server" {
             println!("Redis server monitoring currently unsupported.")
         } else {
@@ -244,14 +180,15 @@ impl Server {
     
     pub fn clear_logs(&mut self) {
         if self.name != "redis-server" {
-            env::set_current_dir(&self.path).unwrap();
-            let delete_command = format!("rm {} && touch {}", "gunicorn.log", "gunicorn.log");
+            let delete_command = format!("rm {}/{}.log && touch {}/{}.log", 
+                self.log_path.display(), self.name,
+                self.log_path.display(), self.name,
+            );
             let status = Command::new("sh")
                 .arg("-c")
                 .arg(&delete_command)
                 .status()
                 .expect("Failed to remove server logs.");
-            env::set_current_dir(&self.original_dir).unwrap();
         } else {
             println!("Redis server monitoring currently unsupported.")
         }

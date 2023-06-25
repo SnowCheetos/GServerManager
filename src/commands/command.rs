@@ -22,6 +22,9 @@ pub enum Command {
 
         #[structopt(short="t", long, default_value = "30")]
         timeout: u32,
+
+        #[structopt(short="l", long, parse(from_os_str))]
+        log_path: Option<PathBuf>
     },
 
     #[structopt(name = "remove")]
@@ -99,7 +102,10 @@ pub enum Command {
         bind: String,
 
         #[structopt(short="p", long, default_value = "6379")]
-        port: u32
+        port: u32,
+
+        #[structopt(short="l", long, parse(from_os_str))]
+        log_path: Option<PathBuf>
     },
 
 

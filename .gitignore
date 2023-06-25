@@ -5,3 +5,5 @@ servers_backup.json
 *.pyc
 __pycache__/
 *.py[cod]
+*.log
+*.rdb

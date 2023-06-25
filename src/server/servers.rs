@@ -235,7 +235,7 @@ impl Servers {
             String::from("False")
         };
         if let Some(index) = index {
-            let log_path = self.servers[index].path.join("gunicorn.log");
+            let log_path = self.servers[index].path.join("server.log");
             if log_path.exists() {
                 let output = Command::new("python")
                 .arg("scripts/main.py")
@@ -273,6 +273,7 @@ struct ServerData {
     port: u32,
     workers: u32,
     timeout: u32,
+    pub log_path: PathBuf,
     github: bool,
     running: bool,
     pid: u32,
@@ -288,6 +289,7 @@ impl From<&Server> for ServerData {
             port: server.port,
             workers: server.workers,
             timeout: server.timeout,
+            log_path: server.log_path.to_str().unwrap().into(),
             github: server.github,
             running: server.running,
             pid: server.pid,
@@ -305,6 +307,7 @@ impl Into<Server> for ServerData {
             port: self.port,
             workers: self.workers,
             timeout: self.timeout,
+            log_path: PathBuf::from(self.log_path),
             github: self.github,
             running: self.running,
             pid: self.pid,

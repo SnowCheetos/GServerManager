@@ -1,8 +1,5 @@
-use std::io::{self, Write};
-use std::path::PathBuf;
-use structopt::StructOpt;
-use termion::{color, style};
 use std::env;
+use structopt::StructOpt;
 
 use crate::commands::command::Command;
 use crate::server::server::Server;
@@ -34,15 +31,19 @@ impl ServerManager {
     pub fn execute(&mut self) {
         let _original_dir = env::current_dir().unwrap();
         match &self.cmd {
-            Some(Command::Add { name, path, workers, bind, port, timeout }) => {
+            Some(Command::Add { name, path, workers, bind, port, timeout, log_path }) => {
                 if !path.exists() || !path.is_dir() {
                     println!("Invalid server path");
                     return;
                 }
+
                 if name.to_lowercase().contains("redis") {
                     println!("Name reserved for Redis, use `redis --path [path to redis config file]` instead.");
                     return;
                 }
+
+                let log_path = log_path.as_ref().unwrap_or_else(|| path);
+
                 let server = Server {
                     name: name.clone(),
                     path: path.clone(),
@@ -50,6 +51,7 @@ impl ServerManager {
                     port: *port,
                     workers: *workers,
                     timeout: *timeout,
+                    log_path: log_path.clone(),
                     github: utils::is_git_repository(path),
                     running: false,
                     pid: 0,
@@ -155,11 +157,12 @@ impl ServerManager {
                 }
             },
 
-            Some(Command::Redis { path, bind, port }) => {
+            Some(Command::Redis { path, bind, port, log_path }) => {
                 if !path.exists() || !path.is_dir() {
                     println!("Invalid redis config path");
                     return;
                 }
+
                 let mut name = String::from("redis-server");
                 if let Some(servers) = &self.servers {
                     let mut counter = 1;
@@ -170,6 +173,9 @@ impl ServerManager {
                         name = format!("redis-server-{}", counter);
                     }
                 }
+
+                let log_path = log_path.as_ref().unwrap_or_else(|| path);
+
                 let server = Server {
                     name: name.clone(),
                     path: path.clone(),
@@ -177,6 +183,7 @@ impl ServerManager {
                     port: *port,
                     workers: 1,
                     timeout: 30,
+                    log_path: log_path.clone(),
                     github: utils::is_git_repository(path),
                     running: false,
                     pid: 0,
