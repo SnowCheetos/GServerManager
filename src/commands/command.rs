@@ -5,101 +5,107 @@ use structopt::StructOpt;
 pub enum Command {
     #[structopt(name = "add")]
     Add {
-        #[structopt(short="N", long)]
+        #[structopt(short="n", long)]
         name: String,
 
-        #[structopt(short="F", long, parse(from_os_str))]
+        #[structopt(short="d", long, parse(from_os_str))]
         path: PathBuf,
 
-        #[structopt(short="W", long, default_value = "4")]
+        #[structopt(short="w", long, default_value = "4")]
         workers: u32,
 
-        #[structopt(short="H", long, default_value = "0.0.0.0")]
-        host: String,
+        #[structopt(short="b", long, default_value = "0.0.0.0")]
+        bind: String,
 
-        #[structopt(short="P", long, default_value = "8000")]
+        #[structopt(short="p", long, default_value = "8000")]
         port: u32,
 
-        #[structopt(short="T", long, default_value = "30")]
+        #[structopt(short="t", long, default_value = "30")]
         timeout: u32,
+
+        #[structopt(short="l", long, parse(from_os_str))]
+        log_path: Option<PathBuf>
     },
 
     #[structopt(name = "remove")]
     Remove {
-        #[structopt(short="N", long)]
+        #[structopt(short="n", long)]
         name: String,
     },
 
     #[structopt(name = "start")]
     Start {
-        #[structopt(short="N", long)]
+        #[structopt(short="n", long)]
         name: String,
     },
 
     #[structopt(name = "stop")]
     Stop {
-        #[structopt(short="N", long)]
+        #[structopt(short="n", long)]
         name: String,
     },
 
     #[structopt(name = "restart")]
     Restart {
-        #[structopt(short="N", long)]
+        #[structopt(short="n", long)]
         name: String,
     },
 
     #[structopt(name = "update")]
     Update {
-        #[structopt(short="N", long)]
+        #[structopt(short="n", long)]
         name: String,
     },
 
     #[structopt(name = "monitor")]
     Monitor {
-        #[structopt(short="N", long)]
+        #[structopt(short="n", long)]
         name: String,
     },
 
     #[structopt(name = "clear_logs")]
     ClearLogs {
-        #[structopt(short="N", long)]
+        #[structopt(short="n", long)]
         name: String,
     },
 
     #[structopt(name = "visualize")]
     Visualize {
-        #[structopt(short="N", long)]
+        #[structopt(short="n", long)]
         name: String,
         
-        #[structopt(short="E", long)]
-        export: Option<bool>
+        #[structopt(short="s", long)]
+        show: bool
     },
 
     #[structopt(name = "git_init")]
     GitInit {
-        #[structopt(short="N", long)]
+        #[structopt(short="n", long)]
         name: String,
     },
 
     #[structopt(name = "add_origin")]
     AddOrigin {
-        #[structopt(short="N", long)]
+        #[structopt(short="n", long)]
         name: String,
 
-        #[structopt(short="U", long)]
+        #[structopt(short="u", long)]
         remote_url: String
     },
 
     #[structopt(name = "redis")]
     Redis {
-        #[structopt(short="F", long, parse(from_os_str))]
+        #[structopt(short="d", long, parse(from_os_str))]
         path: PathBuf,
 
-        #[structopt(short="H", long, default_value = "127.0.0.1")]
-        host: String,
+        #[structopt(short="b", long, default_value = "127.0.0.1")]
+        bind: String,
 
-        #[structopt(short="P", long, default_value = "6379")]
-        port: u32
+        #[structopt(short="p", long, default_value = "6379")]
+        port: u32,
+
+        #[structopt(short="l", long, parse(from_os_str))]
+        log_path: Option<PathBuf>
     },
 
 

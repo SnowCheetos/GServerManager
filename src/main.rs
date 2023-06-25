@@ -1,4 +1,3 @@
-use std::io::{stdout, Write};
 use structopt::StructOpt;
 use GServerManager::server::servers::Servers;
 use GServerManager::commands::manager::ServerManager;
