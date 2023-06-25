@@ -1,7 +1,7 @@
 use std::fs;
 use std::env;
 use std::error::Error;
-use std::process::{Command, Child};
+use std::process::Command;
 use crate::server::server::Server;
 
 pub fn start_redis(server: &mut Server) -> Result<(), Box<dyn Error>> {
@@ -29,13 +29,18 @@ pub fn start_redis(server: &mut Server) -> Result<(), Box<dyn Error>> {
             server.name,
         )
     };
-    let child: Child = Command::new("sh")
+    let output = Command::new("sh")
         .arg("-c")
         .arg(&redis_command)
-        .spawn()
-        .expect("Failed to start redis server.");
-    server.pid = child.id();
-    server.running = true;
+        .output()?;
+
+    if output.status.success() {
+        server.running = true;
+        println!("Successfully started [{}]", server.name);
+    } else {
+        let error_message = String::from_utf8_lossy(&output.stderr);
+        return Err(format!("Failed to start [{}]: {}", server.name, error_message).into());
+    }
 
     Ok(())
 }
@@ -48,14 +53,13 @@ pub fn stop_redis(server: &mut Server) -> Result<(), Box<dyn Error>> {
                 .arg(server.port.to_string())
                 .arg("shutdown")
                 .output()?;
-
+        
     if output.status.success() {
         server.running = false;
-        server.pid = 0;
-        println!("Stopping... ");
+        println!("Successfully stopped [{}]", server.name);
     } else {
         let error_message = String::from_utf8_lossy(&output.stderr);
-        return Err(format!("Failed to stop server: {}", error_message).into());
+        return Err(format!("Failed to stop [{}]: {}", server.name, error_message).into());
     }
 
     Ok(())
