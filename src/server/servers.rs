@@ -72,7 +72,7 @@ impl Servers {
             self.servers[index].stop();
 
             self.servers.remove(index);
-            println!("Successfully removed [{}]", new_server_name);
+            println!("Successfully removed [{}]", name);
             self.backup();
             Ok(())
         } else {
