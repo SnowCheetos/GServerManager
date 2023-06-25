@@ -58,45 +58,56 @@ impl ServerManager {
                     original_dir: _original_dir.to_path_buf()
                 };
                 if let Some(servers) = &mut self.servers {
-                    match servers.add_server(server) {
-                        Ok(()) => println!("Server added successfully."),
-                        Err(e) => println!("Failed to add server: {}", e),
+                    if let Err(e) = servers.add_server(server) {
+                        eprintln!("[ERROR] {}", e);
                     }
                 }
             },
 
             Some(Command::Remove { name }) => {
                 if let Some(servers) = &mut self.servers {
-                    match servers.remove_server(name) {
-                        Ok(()) => println!("Server removed successfully."),
-                        Err(e) => println!("Failed to remove server: {}", e),
+                    if let Err(e) = servers.remove_server(name) {
+                        eprintln!("[ERROR] {}", e);
                     }
                 }
             },
 
             Some(Command::Start { name }) => {
                 if let Some(servers) = &mut self.servers {
-                    match servers.start_server(name) {
-                        Ok(()) => println!("Server started successfully."),
-                        Err(e) => println!("Failed to start server: {}", e),
+                    if let Err(e) = servers.start_server(name) {
+                        eprintln!("[ERROR] {}", e);
                     }
                 }
             },
 
             Some(Command::Stop { name }) => {
                 if let Some(servers) = &mut self.servers {
-                    match servers.stop_server(name) {
-                        Ok(()) => println!("Server stopped successfully."),
-                        Err(e) => println!("Failed to stop server: {}", e),
+                    if let Err(e) = servers.stop_server(name) {
+                        eprintln!("[ERROR] {}", e);
                     }
                 }
             },
 
             Some(Command::Restart { name }) => {
                 if let Some(servers) = &mut self.servers {
-                    match servers.restart_server(name) {
-                        Ok(()) => println!("Server restarted successfully."),
-                        Err(e) => println!("Failed to restart server: {}", e),
+                    if let Err(e) = servers.restart_server(name) {
+                        eprintln!("[ERROR] {}", e);
+                    }
+                }
+            },
+
+            Some(Command::Monitor { name }) => {
+                if let Some(servers) = &mut self.servers {
+                    if let Err(e) = servers.monitor(name) {
+                        eprintln!("[ERROR] {}", e);
+                    }
+                }
+            },
+
+            Some(Command::ClearLogs { name }) => {
+                if let Some(servers) = &mut self.servers {
+                    if let Err(e) = servers.clear_logs(name) {
+                        eprintln!("[ERROR] {}", e);
                     }
                 }
             },
@@ -110,12 +121,6 @@ impl ServerManager {
             Some(Command::Flush {}) => {
                 if let Some(servers) = &mut self.servers {
                     servers.flush();
-                }
-            },
-
-            Some(Command::Monitor { name }) => {
-                if let Some(servers) = &mut self.servers {
-                    servers.monitor(name);
                 }
             },
 
@@ -138,12 +143,6 @@ impl ServerManager {
             Some(Command::Update { name }) => {
                 if let Some(servers) = &mut self.servers {
                     servers.update(name);
-                }
-            },
-
-            Some(Command::ClearLogs { name }) => {
-                if let Some(servers) = &mut self.servers {
-                    servers.clear_logs(name);
                 }
             },
 
