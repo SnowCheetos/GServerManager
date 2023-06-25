@@ -2,13 +2,19 @@
 
 # Description
 
-GServerManager is an interactive command-line interface (CLI) tool for managing multiple WSGI servers. It allows users to add, remove, start, stop, restart, monitor, update servers, manage server logs, and handle servers' GitHub settings. The tool is built using `Rust`, and is designed to be intuitive and easy to use. It also provides event-triggered backups and visualization tools, making it much easier to manage multiple servers on the same machine. It currently supports the `Flask`, `FastAPI` and `Django` frameworks and `Gunicorn`.
+GServerManager is a comprehensive command-line interface (CLI) tool designed in Rust for the efficient management of multiple **WSGI** servers. It provides essential features that allow users to seamlessly add, remove, start, stop, restart, update servers, etc. Users can monitor server status, manage server logs, and adjust servers' GitHub settings, all from the same interface.
+
+In an effort to simplify and streamline operations, GServerManager includes automatic event-triggered backups and intuitive visualization tools. This makes handling multiple servers on a single machine straightforward and less cumbersome.
+
+GServerManager is built to be user-friendly and practical. Its design philosophy emphasizes simplicity and ease of use without compromising on functionality. Currently, the tool extends support to widely-used frameworks such as `Flask`, `FastAPI`, and `Django`, and it works in conjunction with the `Gunicorn` WSGI HTTP server.
+
+Whether you're a novice or an experienced system administrator, GServerManager provides an intuitive, feature-packed solution for WSGI server management. Its blend of crucial features and user-centric design makes managing servers a hassle-free task.
 
 # Getting Started
 
 ## Prerequisites
 * **Rust**: You can download Rust from the [rust official website](https://www.rust-lang.org/tools/install).
-* **Python**: You'll need python for the servers themselves as well as data processing and visualization tools. It's recommended to use `anaconda` for environment managements, check out the [anaconda official website](https://www.anaconda.com/) for details.
+* **Python**: You'll need python for the your WSGI servers as well as the included data processing and visualization tools. It's recommended to use `anaconda` for environment managements, check out the [anaconda official website](https://www.anaconda.com/) for details.
 * **Redis**: This application supports Redis, if you would need to use it in your servers, check out the [redis official website](https://redis.io/docs/getting-started/) for more information.
 
 ## Installation
@@ -310,7 +316,7 @@ $ ./target/release/GServerManager
 
 
 # Contributing
-Contributions are welcome! Just create a branch, make your changes and create a pull request.
+Contributions are welcome! Just make a branch, make your changes and create a pull request.
 
 # License
 Distributed under the GNU v3.0 License. See `LICENSE` for more information.
