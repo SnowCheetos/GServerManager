@@ -96,7 +96,6 @@ pub fn start_gunicorn(server: &mut Server) -> Result<(), Box<dyn Error>> {
 pub fn stop_gunicorn(server: &mut Server) -> Result<(), Box<dyn Error>> {
     let absolute_log_path = fs::canonicalize(&server.log_path)?.to_str().ok_or("Failed to convert path to string")?.to_owned();
 
-    //nv::set_current_dir(&server.path)?;
     let output = Command::new("pkill")
         .arg("-f")
         .arg(format!("gunicorn --bind={}:{} --timeout={} --daemon --access-logfile {}/{}.log --error-logfile {}/{}.log",
@@ -117,7 +116,6 @@ pub fn stop_gunicorn(server: &mut Server) -> Result<(), Box<dyn Error>> {
         let error_message = String::from_utf8_lossy(&output.stderr);
         return Err(format!("Failed to stop [{}]: {}", server.name, error_message).into());
     }
-    //env::set_current_dir(&server.original_dir)?;
 
     Ok(())
 }

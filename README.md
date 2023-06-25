@@ -2,20 +2,20 @@
 
 # Description
 
-GServerManager is an interactive command-line interface (CLI) tool for managing multiple `flask` servers (soon will support Django). It allows users to add, remove, start, stop, restart, monitor, update servers, manage server logs, and handle servers' GitHub settings. The tool is built using `Rust`, and is designed to be intuitive and easy to use. It also provides event-triggered backups and visualization tools, making it much easier to manage multiple servers on the same machine.
+GServerManager is an interactive command-line interface (CLI) tool for managing multiple WSGI servers. It allows users to add, remove, start, stop, restart, monitor, update servers, manage server logs, and handle servers' GitHub settings. The tool is built using `Rust`, and is designed to be intuitive and easy to use. It also provides event-triggered backups and visualization tools, making it much easier to manage multiple servers on the same machine. It currently supports the `Flask`, `FastAPI` and `Django` frameworks and `Gunicorn`.
 
 # Getting Started
 
 ## Prerequisites
-* Rust Programming Language: You can download Rust from the [official website](https://www.rust-lang.org/tools/install).
-* If you would like to use the data tools provided, then `python >= 3.9` is required.
-* This application supports `redis`, if you would need to use it in your server, checkout their [official website](https://redis.io/docs/getting-started/)
+* **Rust**: You can download Rust from the [rust official website](https://www.rust-lang.org/tools/install).
+* **Python**: You'll need python for the servers themselves as well as data processing and visualization tools. It's recommended to use `anaconda` for environment managements, check out the [anaconda official website](https://www.anaconda.com/) for details.
+* **Redis**: This application supports Redis, if you would need to use it in your servers, check out the [redis official website](https://redis.io/docs/getting-started/) for more information.
 
 ## Installation
 1. Clone the repo: `git clone https://github.com/SnowCheetos/GServerManager.git`
 2. Navigate to the cloned directory: `cd GServerManager`
 3. Build the project: `cargo build --release`
-4. To use the visualizer, install dependencies via `pip install -r requirements.txt`
+4. Install python dependencies via `pip install -r requirements.txt`
 
 ## Usage
 After building the project, you can start using the `GServerManager`. Below are examples of the available commands:
@@ -38,57 +38,185 @@ After building the project, you can start using the `GServerManager`. Below are 
 Each command has additional options that can be viewed by using the -h option with the command, like so: `command -h`.
 
 # Examples
+After installation, an executable can be found in `GServerManager/target/release/`
 ```bash
-$ ls
-TestServer/    GServerManager/
+$ cd GServerManager/
+$ ./target/release/GServerManager
 
-$ cd TestServer/
-app.py    # The directory must have at least one of `app.py` or `main.py`
-
-$ cd .. && cd GServerManager/
-$ ./target/release/GServerManager # Assuming you have already built it
-
+# This is the welcome screen
 ╔════════════════════════════════════════════════════╗
 ║             Welcome to GServerManager              ║
 ╠════════════════════════════════════════════════════╣
-║  This is a CLI tool for managing Gunicorn servers. ║
+║   This is a CLI tool for managing WSGI servers.    ║
 ║   Use '-h' command to see the available options.   ║
 ╚════════════════════════════════════════════════════╝
->>> list
-[INFO] Listing all available servers
-[INFO] [*]: Running | [ ]: Not running 
+>>> # This is where you will type the commands
+```
 
+
+
+
+
+
+## Monitor hardware usage (beta)
+### You can see a snapshot of the hardware usage by using the `hardware` command, it's still in the development phase and can be inaccurate.
+```bash
 >>> hardware
-CPU USAGE:       36.46 % |=======             |
-MEMORY USAGE:    95.85 % |=================== |
+CPU USAGE:       39.38 % |========            |
+MEMORY USAGE:    98.43 % |====================|
+>>> 
 ```
-## Adding a server
+
+
+
+
+
+
+## Adding a server and listing all available servers
+### You can start a server by typing `add --name {server name} --path {path to server directory}`, or use `add --help` to see all configuration options.
 ```bash
->>> add -n test -d ../TestServer # Adding a server
-Server added successfully.
+>>> add --name test_server --path tests/test-servers/server-1 --framework flask # Use `add --help` or `add -h` to see all options 
+Successfully added [test_server]
 >>> list
 [INFO] Listing all available servers
 [INFO] [*]: Running | [ ]: Not running 
 
-[ ] Name: test | Address: 0.0.0.0:8000 | Workers: 4 | Timeout: 30s | PID: 0 |
+[ ] Name: test_server | Address: 0.0.0.0:8000 | Workers: 4 | Timeout: 30s | Log Path: tests/test-servers/server-1 |
+>>> 
 ```
-## Starting a server
+
+
+
+## Adding more and starting servers
 ```bash
->>> start -n test
-Server started successfully.
+>>> add --name test_server_2 --path tests/test-servers/server-2 --framework fastapi # Note that you can't add another server on the same port
+[ERROR] Server port already exists
+>>> add --name test_server_2 --path tests/test-servers/server-2 --framework fastapi --port 9000
+Successfully added [test_server_2]
 >>> list
 [INFO] Listing all available servers
 [INFO] [*]: Running | [ ]: Not running 
 
-[*] Name: test | Address: 0.0.0.0:8000 | Workers: 4 | Timeout: 30s | PID: 74578 |
+[ ] Name: test_server | Address: 0.0.0.0:8000 | Workers: 4 | Timeout: 30s | Log Path: tests/test-servers/server-1 |
+[ ] Name: test_server_2 | Address: 0.0.0.0:9000 | Workers: 4 | Timeout: 30s | Log Path: tests/test-servers/server-2 |
+>>> 
 ```
-## Server log visualizations
+
+
+
+### Now we can start a server by typing `start --name {server name}` or `start -n {server name}`
+```bash
+>>> start --name test_server
+Successfully started [test_server]
+>>> list
+[INFO] Listing all available servers
+[INFO] [*]: Running | [ ]: Not running 
+# Note that the list shows that test_server is running, which is correct
+[*] Name: test_server | Address: 0.0.0.0:8000 | Workers: 4 | Timeout: 30s | Log Path: tests/test-servers/server-1 |
+[ ] Name: test_server_2 | Address: 0.0.0.0:9000 | Workers: 4 | Timeout: 30s | Log Path: tests/test-servers/server-2 |
+>>> 
+```
+
+
+
+
+## Redis support
+If you're using redis as a caching layer or any other purpose, you can add a redis server by `redis --path {path to redis config file}`, if the path you provided does not contain `redis.conf`, then it'll automatically use the default redis configurations.
+```bash
+>>> redis --path tests/redis-logs/redis-1
+Successfully added [redis-server]
+>>> list
+[INFO] Listing all available servers
+[INFO] [*]: Running | [ ]: Not running 
+
+[*] Name: test_server | Address: 0.0.0.0:8000 | Workers: 4 | Timeout: 30s | Log Path: tests/test-servers/server-1 |
+[ ] Name: test_server_2 | Address: 0.0.0.0:9000 | Workers: 4 | Timeout: 30s | Log Path: tests/test-servers/server-2 |
+[ ] Name: redis-server | Address: 127.0.0.1:6379 | Workers: 1 | Timeout: 30s | Log Path: tests/redis-logs/redis-1 |
+>>> 
+```
+You can ass multiple redis servers if you need, as long as they're on different ports.
+```bash
+>>> redis --path tests/redis-logs/redis-2 -p 7000
+Successfully added [redis-server-2]
+>>> list
+[INFO] Listing all available servers
+[INFO] [*]: Running | [ ]: Not running 
+
+[*] Name: test_server | Address: 0.0.0.0:8000 | Workers: 4 | Timeout: 30s | Log Path: tests/test-servers/server-1 |
+[ ] Name: test_server_2 | Address: 0.0.0.0:9000 | Workers: 4 | Timeout: 30s | Log Path: tests/test-servers/server-2 |
+[ ] Name: redis-server | Address: 127.0.0.1:6379 | Workers: 1 | Timeout: 30s | Log Path: tests/redis-logs/redis-1 |
+[ ] Name: redis-server-2 | Address: 127.0.0.1:7000 | Workers: 1 | Timeout: 30s | Log Path: tests/redis-logs/redis-2 |
+>>> 
+```
+
+
+
+
+## Starting redis server and monitoring servers
+### You can start a redis server the same way you start other servers
+```bash
+>>> start -n redis-server-2
+Successfully started [redis-server-2]
+>>> list
+[INFO] Listing all available servers
+[INFO] [*]: Running | [ ]: Not running 
+
+[*] Name: test_server | Address: 0.0.0.0:8000 | Workers: 4 | Timeout: 30s | Log Path: tests/test-servers/server-1 |
+[ ] Name: test_server_2 | Address: 0.0.0.0:9000 | Workers: 4 | Timeout: 30s | Log Path: tests/test-servers/server-2 |
+[ ] Name: redis-server | Address: 127.0.0.1:6379 | Workers: 1 | Timeout: 30s | Log Path: tests/redis-logs/redis-1 |
+[*] Name: redis-server-2 | Address: 127.0.0.1:7000 | Workers: 1 | Timeout: 30s | Log Path: tests/redis-logs/redis-2 |
+>>> 
+```
+
+
+### You can view the logs for the servers via `monitor --name {server name}`
+```bash
+>>> monitor -n test_server
+Successfully retrieved server logs.
+[2023-06-25 17:25:05 -0500] [22828] [INFO] Starting gunicorn 20.1.0
+[2023-06-25 17:25:05 -0500] [22828] [INFO] Listening at: http://0.0.0.0:8000 (22828)
+[2023-06-25 17:25:05 -0500] [22828] [INFO] Using worker: sync
+[2023-06-25 17:25:05 -0500] [22829] [INFO] Booting worker with pid: 22829
+[2023-06-25 17:25:05 -0500] [22830] [INFO] Booting worker with pid: 22830
+[2023-06-25 17:25:05 -0500] [22831] [INFO] Booting worker with pid: 22831
+[2023-06-25 17:25:05 -0500] [22832] [INFO] Booting worker with pid: 22832
+
+>>> monitor -n redis-server-2
+Successfully retrieved server logs.
+23015:C 25 Jun 2023 17:33:20.462 # oO0OoO0OoO0Oo Redis is starting oO0OoO0OoO0Oo
+23015:C 25 Jun 2023 17:33:20.462 # Redis version=7.0.11, bits=64, commit=00000000, modified=0, pid=23015, just started
+23015:C 25 Jun 2023 17:33:20.462 # Configuration loaded
+23015:M 25 Jun 2023 17:33:20.463 * monotonic clock: POSIX clock_gettime
+23015:M 25 Jun 2023 17:33:20.465 * Running mode=standalone, port=7000.
+23015:M 25 Jun 2023 17:33:20.465 # WARNING: The TCP backlog setting of 511 cannot be enforced because kern.ipc.somaxconn is set to the lower value of 128.
+23015:M 25 Jun 2023 17:33:20.466 # Server initialized
+23015:M 25 Jun 2023 17:33:20.466 * Loading RDB produced by version 7.0.11
+23015:M 25 Jun 2023 17:33:20.467 * RDB age 3470 seconds
+23015:M 25 Jun 2023 17:33:20.467 * RDB memory usage when created 1.10 Mb
+23015:M 25 Jun 2023 17:33:20.467 * Done loading RDB, keys loaded: 0, keys expired: 0.
+23015:M 25 Jun 2023 17:33:20.467 * DB loaded from disk: 0.001 seconds
+23015:M 25 Jun 2023 17:33:20.467 * Ready to accept connections
+
+>>> 
+```
+
+
+
+
+
+## Server log visualizations (currently only available for Flask servers)
 ```bash
 >>> visualize -n test -s # display tag
 ```
 ![](media/demo.jpg)
+
+
+
+
+
+
 ## Example of server and event logs which will be saved in `data/logs`
-* **Server Logs**
+### Server logs
 ```yaml
 | Type   | Timestamp                 | IP          | RequestMethod | Endpoint | ResponseCode | UserAgent                                                                                                             |
 |--------|---------------------------|-------------|---------------|----------|--------------|-----------------------------------------------------------------------------------------------------------------------|
@@ -98,7 +226,7 @@ Server started successfully.
 | Server | 2023-06-24 02:37:00-05:00 | 127.0.0.1   | GET           | /        | 200          | Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36 |
 
 ```
-* **Event Logs**
+### Event logs
 ```yaml
 |      | Type  | Timestamp                 | PID   | LogLevel      | EventMessage                                     |
 |------|-------|---------------------------|-------|---------------|--------------------------------------------------|
@@ -112,44 +240,74 @@ Server started successfully.
 | 10   | Event | 2023-06-24 02:58:43-05:00 | 80926 | INFO          | Worker exiting (pid: 80926)                      |
 | 11   | Event | 2023-06-24 02:58:43-05:00 | 80925 | INFO          | Worker exiting (pid: 80925)                      |
 ```
-## Stopping a server and exiting
+
+
+
+
+
+
+
+## Stopping a server
+### You can stop a server via `stop --name {server name}`
 ```bash
->>> stop -n test
-Stopping... 
-Server stopped successfully.
+>>> stop -n redis-server-2
+Successfully stopped [redis-server-2]
+>>> list
+[INFO] Listing all available servers
+[INFO] [*]: Running | [ ]: Not running 
+
+[*] Name: test_server | Address: 0.0.0.0:8000 | Workers: 4 | Timeout: 30s | Log Path: tests/test-servers/server-1 |
+[ ] Name: test_server_2 | Address: 0.0.0.0:9000 | Workers: 4 | Timeout: 30s | Log Path: tests/test-servers/server-2 |
+[ ] Name: redis-server | Address: 127.0.0.1:6379 | Workers: 1 | Timeout: 30s | Log Path: tests/redis-logs/redis-1 |
+[ ] Name: redis-server-2 | Address: 127.0.0.1:7000 | Workers: 1 | Timeout: 30s | Log Path: tests/redis-logs/redis-2 |
+>>> 
+```
+
+### You can also stop all servers and clear the list via `flush`
+```bash
+>>> flush
+Successfully stopped [test_server]
+Server [redis-server] not currently running, doing nothing...
+Server [test_server_2] not currently running, doing nothing...
+Server [redis-server-2] not currently running, doing nothing...
+>>> list
+[INFO] Listing all available servers
+[INFO] [*]: Running | [ ]: Not running 
+
+>>> 
+```
+
+## Event triggered backups
+### Persistent backups are available for this application. Each time a backup event is triggered (add, remove, start, etc...), the server states are saved in `backups/servers_backup.json`, if you exit the application, it'll automatically be restored next time you launch it.
+```bash
+>>> add -n test-server -d tests/test-servers/server-1 -p 7890 -f fastapi
+Successfully added [test-server]
+>>> start -n test-server # Backup event
+Successfully started [test-server]
+>>> list
+[INFO] Listing all available servers
+[INFO] [*]: Running | [ ]: Not running 
+
+[*] Name: test-server | Address: 0.0.0.0:7890 | Workers: 4 | Timeout: 30s | Log Path: tests/test-servers/server-1 |
 >>> exit
-```
-If you exit the application, all current attributes should have been backed up in `backups/server_logs.json` in a event-triggered strategy and will be restored when you next launch the application.
 
-## Redis support
-Redis is supported in this application.
-```bash
+$ ./target/release/GServerManager
+╔════════════════════════════════════════════════════╗
+║             Welcome to GServerManager              ║
+╠════════════════════════════════════════════════════╣
+║   This is a CLI tool for managing WSGI servers.    ║
+║   Use '-h' command to see the available options.   ║
+╚════════════════════════════════════════════════════╝
 >>> list
 [INFO] Listing all available servers
 [INFO] [*]: Running | [ ]: Not running 
 
->>> redis -d . -p 9000 # add one redis server that runs on port 9000
-                       # F here specifies the path to redis.conf
-                       # If you don't have one, it'll automatically use the default config file
-Server added successfully.
->>> list
-[INFO] Listing all available servers
-[INFO] [*]: Running | [ ]: Not running 
-
-[ ] Name: redis-server | Address: 127.0.0.1:9000 | Workers: 1 | Timeout: 30s | PID: 0 |
+[*] Name: test-server | Address: 0.0.0.0:7890 | Workers: 4 | Timeout: 30s | Log Path: tests/test-servers/server-1 |
+>>> 
 ```
-You can add multiple redis servers as long as they run on different ports
-```bash
->>> redis -d ..
-Server added successfully.
->>> list
-[INFO] Listing all available servers
-[INFO] [*]: Running | [ ]: Not running 
 
-[ ] Name: redis-server | Address: 127.0.0.1:9000 | Workers: 1 | Timeout: 30s | PID: 0 |
-[ ] Name: redis-server-2 | Address: 127.0.0.1:6379 | Workers: 1 | Timeout: 30s | PID: 0 |
-```
-You can then start redis servers the same way as gunicorn servers.
+
+
 
 # Contributing
 Contributions are welcome! Just create a branch, make your changes and create a pull request.

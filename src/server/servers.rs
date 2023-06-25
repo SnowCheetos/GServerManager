@@ -72,6 +72,7 @@ impl Servers {
             self.servers[index].stop();
 
             self.servers.remove(index);
+            println!("Successfully removed [{}]", new_server_name);
             self.backup();
             Ok(())
         } else {
@@ -230,7 +231,7 @@ impl Servers {
 
         // Check if the backup file exists
         if !backup_path.exists() {
-            println!("Backup file does not exist. Assuming first launch and skipping restoration process.");
+            println!("No back up file found. Skipping restoration process.");
             return;
         }
 
