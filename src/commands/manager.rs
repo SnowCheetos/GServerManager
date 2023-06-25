@@ -31,7 +31,7 @@ impl ServerManager {
     pub fn execute(&mut self) {
         let _original_dir = env::current_dir().unwrap();
         match &self.cmd {
-            Some(Command::Add { name, path, workers, bind, port, timeout, log_path }) => {
+            Some(Command::Add { name, framework, path, workers, bind, port, timeout, log_path }) => {
                 if !path.exists() || !path.is_dir() {
                     println!("Invalid server path");
                     return;
@@ -54,7 +54,46 @@ impl ServerManager {
                     log_path: log_path.clone(),
                     github: utils::is_git_repository(path),
                     running: false,
-                    pid: 0,
+                    framework: framework.clone(),
+                    original_dir: _original_dir.to_path_buf()
+                };
+                if let Some(servers) = &mut self.servers {
+                    if let Err(e) = servers.add_server(server) {
+                        eprintln!("[ERROR] {}", e);
+                    }
+                }
+            },
+
+            Some(Command::Redis { path, bind, port, log_path }) => {
+                if !path.exists() || !path.is_dir() {
+                    println!("Invalid redis config path");
+                    return;
+                }
+
+                let mut name = String::from("redis-server");
+                if let Some(servers) = &self.servers {
+                    let mut counter = 1;
+                    
+                    // Check if the name already exists
+                    while servers.name_exists(&name) {
+                        counter += 1;
+                        name = format!("redis-server-{}", counter);
+                    }
+                }
+
+                let log_path = log_path.as_ref().unwrap_or_else(|| path);
+
+                let server = Server {
+                    name: name.clone(),
+                    path: path.clone(),
+                    bind: bind.clone(),
+                    port: *port,
+                    workers: 1,
+                    timeout: 30,
+                    log_path: log_path.clone(),
+                    github: utils::is_git_repository(path),
+                    running: false,
+                    framework: String::from("redis"),
                     original_dir: _original_dir.to_path_buf()
                 };
                 if let Some(servers) = &mut self.servers {
@@ -153,46 +192,6 @@ impl ServerManager {
                 }
                 if let Some(servers) = &mut self.servers {
                     servers.visualize(name, show);
-                }
-            },
-
-            Some(Command::Redis { path, bind, port, log_path }) => {
-                if !path.exists() || !path.is_dir() {
-                    println!("Invalid redis config path");
-                    return;
-                }
-
-                let mut name = String::from("redis-server");
-                if let Some(servers) = &self.servers {
-                    let mut counter = 1;
-                    
-                    // Check if the name already exists
-                    while servers.name_exists(&name) {
-                        counter += 1;
-                        name = format!("redis-server-{}", counter);
-                    }
-                }
-
-                let log_path = log_path.as_ref().unwrap_or_else(|| path);
-
-                let server = Server {
-                    name: name.clone(),
-                    path: path.clone(),
-                    bind: bind.clone(),
-                    port: *port,
-                    workers: 1,
-                    timeout: 30,
-                    log_path: log_path.clone(),
-                    github: utils::is_git_repository(path),
-                    running: false,
-                    pid: 0,
-                    original_dir: _original_dir.to_path_buf()
-                };
-                if let Some(servers) = &mut self.servers {
-                    match servers.add_server(server) {
-                        Ok(()) => println!("Server added successfully."),
-                        Err(e) => println!("Failed to add server: {}", e),
-                    }
                 }
             },
 

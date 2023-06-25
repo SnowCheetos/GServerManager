@@ -8,6 +8,9 @@ pub enum Command {
         #[structopt(short="n", long)]
         name: String,
 
+        #[structopt(short="f", long, default_value = "flask")]
+        framework: String,
+
         #[structopt(short="d", long, parse(from_os_str))]
         path: PathBuf,
 

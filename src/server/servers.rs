@@ -23,25 +23,20 @@ impl Servers {
         println!("[INFO] Listing all available servers");
         println!("[INFO] [*]: Running | [ ]: Not running \n");
         for server in &mut self.servers {
-            if server.running {
-                println!("[*] Name: {} | Address: {}:{} | Workers: {} | Timeout: {}s | PID: {} |", 
-                    server.name, 
-                    server.bind, 
-                    server.port, 
-                    server.workers,
-                    server.timeout,
-                    server.pid
-                );
+            let symbol = if server.running {
+                String::from("*")
             } else {
-                println!("[ ] Name: {} | Address: {}:{} | Workers: {} | Timeout: {}s | PID: {} |", 
-                    server.name, 
-                    server.bind, 
-                    server.port, 
-                    server.workers,
-                    server.timeout,
-                    server.pid
-                );
-            }
+                String::from(" ")
+            };
+            println!("[{}] Name: {} | Address: {}:{} | Workers: {} | Timeout: {}s | Log Path: {} |", 
+                symbol,
+                server.name, 
+                server.bind, 
+                server.port, 
+                server.workers,
+                server.timeout,
+                server.log_path.display()
+            );
         }
     }
 
@@ -58,8 +53,10 @@ impl Servers {
             return Err(String::from("Server port already exists"));
         }
 
+        let new_server_name = new_server.name.clone();
         self.servers.push(new_server);
         self.backup();
+        println!("Successfully added [{}]", new_server_name);
         Ok(())
     }
 
@@ -292,10 +289,10 @@ struct ServerData {
     port: u32,
     workers: u32,
     timeout: u32,
-    pub log_path: PathBuf,
+    log_path: PathBuf,
     github: bool,
     running: bool,
-    pid: u32,
+    framework: String,
     original_dir: PathBuf
 }
 
@@ -311,7 +308,7 @@ impl From<&Server> for ServerData {
             log_path: server.log_path.to_str().unwrap().into(),
             github: server.github,
             running: server.running,
-            pid: server.pid,
+            framework: server.framework.clone(),
             original_dir: server.original_dir.clone()
         }
     }
@@ -329,7 +326,7 @@ impl Into<Server> for ServerData {
             log_path: PathBuf::from(self.log_path),
             github: self.github,
             running: self.running,
-            pid: self.pid,
+            framework: self.framework,
             original_dir: self.original_dir
         }
     }

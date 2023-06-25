@@ -18,7 +18,7 @@ pub struct Server {
     pub log_path: PathBuf, // Path to log file
     pub github: bool, // Whether or not the directory is linked to a git repository
     pub running: bool, // Whether or not the server is currently running
-    pub pid: u32, // The PID of the server master worker
+    pub framework: String, // The Python framework used, default Flask
     pub original_dir: PathBuf // The original directory when the application was started
 }
 
@@ -52,7 +52,7 @@ impl Server {
                 stop_redis(self)
             }
         } else {
-            println!("Server [{}] not currently running, doing nothing...\n", self.name);
+            println!("Server [{}] not currently running, doing nothing...", self.name);
             Ok(())
         }
     }     
