@@ -52,7 +52,8 @@ impl Server {
                 stop_redis(self)
             }
         } else {
-            Err("Server not currently running.".into())
+            println!("Server [{}] not currently running, doing nothing...\n", self.name);
+            Ok(())
         }
     }     
 
@@ -62,6 +63,55 @@ impl Server {
         Ok(())
     }
 
+    pub fn monitor(&self) -> Result<(), Box<dyn Error>>  {
+        if self.is_valid() || self.name.to_lowercase().contains("redis-server") {
+            env::set_current_dir(&self.original_dir)?;
+
+            let monitor_command = format!("cat {}/{}.log", self.log_path.display(), self.name);
+            let output = Command::new("sh")
+                .arg("-c")
+                .arg(&monitor_command)
+                .output()?;
+            
+            if output.status.success() {
+                println!("Successfully retrieved server logs.");
+                let stdout = String::from_utf8_lossy(&output.stdout);
+                   println!("{}", stdout);
+            } else {
+                let error_message = String::from_utf8_lossy(&output.stderr);
+                return Err(format!("Failed retrieve server logs: {}", error_message).into());
+            }
+
+            Ok(())
+
+        } else {
+            Err("Not a valid server directory.".into())
+        }
+    }
+    
+    pub fn clear_logs(&mut self) -> Result<(), Box<dyn Error>> {
+        if self.is_valid() || self.name.to_lowercase().contains("redis-server") {
+            let clear_command = format!("> {}/{}.log", self.log_path.display(), self.name);
+            let output = Command::new("sh")
+                .arg("-c")
+                .arg(&clear_command)
+                .output()?;
+
+            if output.status.success() {
+                println!("Successfully cleared server logs.");
+            } else {
+                let error_message = String::from_utf8_lossy(&output.stderr);
+                return Err(format!("Failed clear server logs: {}", error_message).into());
+            }
+            
+            Ok(())
+
+        } else {
+            Err("Not a valid server directory.".into())
+        }
+    }
+
+    ///////////////////////////WORK ON NEXT//////////////////////////////
     pub fn git_init(&mut self) {
         if !self.github {
             initialize_git_repository(&self.path);
@@ -131,45 +181,5 @@ impl Server {
         } else {
             println!("Not a valid git repository.");
         }
-    }    
-
-    pub fn monitor(&self) {
-        if self.running && self.name != "redis-server" {
-            let monitor_command = format!("cat {}/{}.log", self.log_path.display(), self.name);
-    
-            let output = Command::new("sh")
-                .arg("-c")
-                .arg(&monitor_command)
-                .output()
-                .expect("Failed to retrieve server logs.");
-    
-            if output.status.success() {
-                let stdout = String::from_utf8_lossy(&output.stdout);
-                println!("{}", stdout);
-            } else {
-                let stderr = String::from_utf8_lossy(&output.stderr);
-                println!("Failed to retrieve server logs:\n{}", stderr);
-            }
-        } else if self.name == "redis-server" {
-            println!("Redis server monitoring currently unsupported.")
-        } else {
-            println!("Server is not currently running.")
-        }
-    }   
-    
-    pub fn clear_logs(&mut self) {
-        if self.name != "redis-server" {
-            let delete_command = format!("rm {}/{}.log && touch {}/{}.log", 
-                self.log_path.display(), self.name,
-                self.log_path.display(), self.name,
-            );
-            let status = Command::new("sh")
-                .arg("-c")
-                .arg(&delete_command)
-                .status()
-                .expect("Failed to remove server logs.");
-        } else {
-            println!("Redis server monitoring currently unsupported.")
-        }
-    }        
+    }            
 }

@@ -19,6 +19,32 @@ impl Servers {
         self.servers.len()
     }
 
+    pub fn list_all(&mut self) {
+        println!("[INFO] Listing all available servers");
+        println!("[INFO] [*]: Running | [ ]: Not running \n");
+        for server in &mut self.servers {
+            if server.running {
+                println!("[*] Name: {} | Address: {}:{} | Workers: {} | Timeout: {}s | PID: {} |", 
+                    server.name, 
+                    server.bind, 
+                    server.port, 
+                    server.workers,
+                    server.timeout,
+                    server.pid
+                );
+            } else {
+                println!("[ ] Name: {} | Address: {}:{} | Workers: {} | Timeout: {}s | PID: {} |", 
+                    server.name, 
+                    server.bind, 
+                    server.port, 
+                    server.workers,
+                    server.timeout,
+                    server.pid
+                );
+            }
+        }
+    }
+
     pub fn add_server(&mut self, new_server: Server) -> Result<(), String> {
         if self.name_exists(&new_server.name) {
             return Err(String::from("Server name already exists"));
@@ -120,22 +146,34 @@ impl Servers {
         }
     }
 
-    pub fn monitor(&mut self, name: &str) {
+    pub fn monitor(&mut self, name: &str) -> Result<(), Box<dyn Error>> {
         let index = self.servers.iter().position(|s| s.name == name);
 
         if let Some(index) = index {
-            // Safely shut down the server before removing
-            self.servers[index].monitor();
+            self.servers[index].monitor()?;
+            Ok(())
         } else {
-            println!("Server not found.")
+            Err("Server not found".into())
         }
     }
 
+    pub fn clear_logs(&mut self, name: &str) -> Result<(), Box<dyn Error>> {
+        let index = self.servers.iter().position(|s| s.name == name);
+
+        if let Some(index) = index {
+            self.servers[index].clear_logs()?;
+            Ok(())
+        } else {
+            Err("Server not found".into())
+        }
+    }
+
+
+    ////////////////////////////////////
     pub fn update(&mut self, name: &str) {
         let index = self.servers.iter().position(|s| s.name == name);
 
         if let Some(index) = index {
-            // Safely shut down the server before removing
             self.servers[index].update();
             self.backup();
         } else {
@@ -161,43 +199,6 @@ impl Servers {
         if let Some(index) = index {
             // Safely shut down the server before removing
             self.servers[index].git_set_origin(remote_url);
-        } else {
-            println!("Server not found.")
-        }
-    }
-
-    pub fn list_all(&mut self) {
-        println!("[INFO] Listing all available servers");
-        println!("[INFO] [*]: Running | [ ]: Not running \n");
-        for server in &mut self.servers {
-            if server.running {
-                println!("[*] Name: {} | Address: {}:{} | Workers: {} | Timeout: {}s | PID: {} |", 
-                    server.name, 
-                    server.bind, 
-                    server.port, 
-                    server.workers,
-                    server.timeout,
-                    server.pid
-                );
-            } else {
-                println!("[ ] Name: {} | Address: {}:{} | Workers: {} | Timeout: {}s | PID: {} |", 
-                    server.name, 
-                    server.bind, 
-                    server.port, 
-                    server.workers,
-                    server.timeout,
-                    server.pid
-                );
-            }
-        }
-    }
-
-    pub fn clear_logs(&mut self, name: &str) {
-        let index = self.servers.iter().position(|s| s.name == name);
-
-        if let Some(index) = index {
-            // Safely shut down the server before removing
-            self.servers[index].clear_logs();
         } else {
             println!("Server not found.")
         }

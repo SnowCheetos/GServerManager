@@ -56,11 +56,10 @@ pub fn stop_gunicorn(server: &mut Server) -> Result<(), Box<dyn Error>> {
         server.pid = 0;
         println!("Stopping... ");
     } else {
-        // Instead of just printing the error, convert it into a string and return it
         let error_message = String::from_utf8_lossy(&output.stderr);
         return Err(format!("Failed to stop server: {}", error_message).into());
     }
     env::set_current_dir(&server.original_dir)?;
-    
+
     Ok(())
 }
