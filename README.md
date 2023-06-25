@@ -64,7 +64,7 @@ MEMORY USAGE:    95.85 % |=================== |
 ```
 ## Adding a server
 ```bash
->>> add -N test -F ../TestServer # Adding a server
+>>> add -n test -d ../TestServer # Adding a server
 Server added successfully.
 >>> list
 [INFO] Listing all available servers
@@ -74,7 +74,7 @@ Server added successfully.
 ```
 ## Starting a server
 ```bash
->>> start -N test
+>>> start -n test
 Server started successfully.
 >>> list
 [INFO] Listing all available servers
@@ -84,7 +84,7 @@ Server started successfully.
 ```
 ## Server log visualizations
 ```bash
->>> visualize -N test -E true # exports image and parsed logs
+>>> visualize -n test -s # display tag
 ```
 ![](media/demo.jpg)
 ## Example of server and event logs which will be saved in `data/logs`
@@ -114,7 +114,7 @@ Server started successfully.
 ```
 ## Stopping a server and exiting
 ```bash
->>> stop -N test
+>>> stop -n test
 Stopping... 
 Server stopped successfully.
 >>> exit
@@ -128,7 +128,7 @@ Redis is supported in this application.
 [INFO] Listing all available servers
 [INFO] [*]: Running | [ ]: Not running 
 
->>> redis -F . -P 9000 # add one redis server that runs on port 9000
+>>> redis -d . -p 9000 # add one redis server that runs on port 9000
                        # F here specifies the path to redis.conf
                        # If you don't have one, it'll automatically use the default config file
 Server added successfully.
@@ -140,7 +140,7 @@ Server added successfully.
 ```
 You can add multiple redis servers as long as they run on different ports
 ```bash
->>> redis -F ..
+>>> redis -d ..
 Server added successfully.
 >>> list
 [INFO] Listing all available servers
