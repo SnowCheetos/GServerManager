@@ -34,7 +34,7 @@ impl ServerManager {
     pub fn execute(&mut self) {
         let _original_dir = env::current_dir().unwrap();
         match &self.cmd {
-            Some(Command::Add { name, path, workers, host, port, timeout }) => {
+            Some(Command::Add { name, path, workers, bind, port, timeout }) => {
                 if !path.exists() || !path.is_dir() {
                     println!("Invalid server path");
                     return;
@@ -46,7 +46,7 @@ impl ServerManager {
                 let server = Server {
                     name: name.clone(),
                     path: path.clone(),
-                    host: host.clone(),
+                    bind: bind.clone(),
                     port: *port,
                     workers: *workers,
                     timeout: *timeout,
@@ -145,24 +145,17 @@ impl ServerManager {
                 }
             },
 
-            Some(Command::Visualize { name, export }) => {
+            Some(Command::Visualize { name, show }) => {
                 if name.to_lowercase().contains("redis") {
                     println!("Visualization for Redis servers not implemented.");
                     return;
                 }
                 if let Some(servers) = &mut self.servers {
-                    match export {
-                        Some(export) => {
-                            servers.visualize(name, export);
-                        },
-                        None => {
-                            servers.visualize(name, &false);
-                        }
-                    }
+                    servers.visualize(name, show);
                 }
             },
 
-            Some(Command::Redis { path, host, port }) => {
+            Some(Command::Redis { path, bind, port }) => {
                 if !path.exists() || !path.is_dir() {
                     println!("Invalid redis config path");
                     return;
@@ -180,7 +173,7 @@ impl ServerManager {
                 let server = Server {
                     name: name.clone(),
                     path: path.clone(),
-                    host: host.clone(),
+                    bind: bind.clone(),
                     port: *port,
                     workers: 1,
                     timeout: 30,

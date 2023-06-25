@@ -155,7 +155,7 @@ impl Servers {
             if server.running {
                 println!("[*] Name: {} | Address: {}:{} | Workers: {} | Timeout: {}s | PID: {} |", 
                     server.name, 
-                    server.host, 
+                    server.bind, 
                     server.port, 
                     server.workers,
                     server.timeout,
@@ -164,7 +164,7 @@ impl Servers {
             } else {
                 println!("[ ] Name: {} | Address: {}:{} | Workers: {} | Timeout: {}s | PID: {} |", 
                     server.name, 
-                    server.host, 
+                    server.bind, 
                     server.port, 
                     server.workers,
                     server.timeout,
@@ -227,20 +227,20 @@ impl Servers {
         self.servers = servers_data.into_iter().map(|data| data.into()).collect();
     }
 
-    pub fn visualize(&self, name: &str, export: &bool) {
+    pub fn visualize(&self, name: &str, show: &bool) {
         let index = self.servers.iter().position(|s| s.name == name);
+        let show_arg = if *show {
+            String::from("True")
+        } else {
+            String::from("False")
+        };
         if let Some(index) = index {
             let log_path = self.servers[index].path.join("gunicorn.log");
-            let export_arg = if *export {
-                String::from("True")
-            } else {
-                String::from("False")
-            };
             if log_path.exists() {
                 let output = Command::new("python")
                 .arg("scripts/main.py")
                 .arg(log_path)
-                .arg(export_arg)
+                .arg(show_arg)
                 .output()
                 .expect("Failed to execute Python script");
                 if output.status.success() {
@@ -269,7 +269,7 @@ impl Servers {
 struct ServerData {
     name: String,
     path: String,
-    host: String,
+    bind: String,
     port: u32,
     workers: u32,
     timeout: u32,
@@ -284,7 +284,7 @@ impl From<&Server> for ServerData {
         Self {
             name: server.name.clone(),
             path: server.path.to_str().unwrap().to_string(),
-            host: server.host.clone(),
+            bind: server.bind.clone(),
             port: server.port,
             workers: server.workers,
             timeout: server.timeout,
@@ -301,7 +301,7 @@ impl Into<Server> for ServerData {
         Server {
             name: self.name,
             path: PathBuf::from(self.path),
-            host: self.host,
+            bind: self.bind,
             port: self.port,
             workers: self.workers,
             timeout: self.timeout,

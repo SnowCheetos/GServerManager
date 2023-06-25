@@ -12,7 +12,7 @@ use crate::github::utils::{git_pull, git_diff_name_only, initialize_git_reposito
 pub struct Server {
     pub name: String, // The name given to the server
     pub path: PathBuf, // Path to the server directory
-    pub host: String, // Host address assigned, default 0.0.0.0
+    pub bind: String, // Host address assigned, default 0.0.0.0
     pub port: u32, // Port assigned, default 8000
     pub workers: u32, // Number of workers used, default 4
     pub timeout: u32, // Worker timeout value, default 30 seconds
@@ -56,7 +56,7 @@ impl Server {
             env::set_current_dir(&self.path).unwrap();
             let gunicorn_command = format!("gunicorn --workers={} --bind={}:{} --timeout={} --daemon --access-logfile gunicorn.log --error-logfile gunicorn.log {}",
                                            self.workers,
-                                           self.host,
+                                           self.bind,
                                            self.port,
                                            self.timeout,
                                            app);
@@ -79,14 +79,14 @@ impl Server {
             let redis_command = if self.path.join("redis.conf").exists() {
                 format!("redis-server {}/redis.conf --daemonize yes --bind {} --port {} --timeout {}", 
                     self.path.display(),
-                    self.host,
+                    self.bind,
                     self.port.to_string(),
                     self.timeout.to_string()
                 )
             } else {
                 format!(
                     "redis-server --daemonize yes --bind {} --port {} --timeout {}",
-                    self.host,
+                    self.bind,
                     self.port.to_string(),
                     self.timeout.to_string()
                 )
@@ -108,7 +108,7 @@ impl Server {
             // Execute the command to kill the server process
             let output = Command::new("pkill")
                 .arg("-f")
-                .arg(format!("gunicorn --workers={} --bind={}:{}", self.workers, self.host, self.port))
+                .arg(format!("gunicorn --workers={} --bind={}:{}", self.workers, self.bind, self.port))
                 .output();
 
             match output {
