@@ -1,6 +1,7 @@
 use crate::server::server::Server;
 use std::path::Path;
 use std::path::PathBuf;
+use std::error::Error;
 use std::fs::File;
 use std::io::prelude::*;
 use serde_json;
@@ -55,51 +56,68 @@ impl Servers {
         }
     }
 
-    pub fn start_server(&mut self, name: &str) -> Result<(), String> {
+    pub fn start_server(&mut self, name: &str) -> Result<(), Box<dyn Error>> {
+        let index = self.servers.iter().position(|s| s.name == name);
+    
+        if let Some(index) = index {
+            // Safely shut down the server before removing
+            self.servers[index].start()?;
+            self.backup();
+            Ok(())
+        } else {
+            Err("Server not found".into())
+        }
+    }    
+
+    pub fn stop_server(&mut self, name: &str) -> Result<(), Box<dyn Error>> {
         let index = self.servers.iter().position(|s| s.name == name);
 
         if let Some(index) = index {
             // Safely shut down the server before removing
-            self.servers[index].start();
+            self.servers[index].stop()?;
             self.backup();
             Ok(())
         } else {
-            Err(String::from("Server not found"))
+            Err("Server not found".into())
         }
     }
 
-    pub fn stop_server(&mut self, name: &str) -> Result<(), String> {
+    pub fn restart_server(&mut self, name: &str) -> Result<(), Box<dyn Error>> {
         let index = self.servers.iter().position(|s| s.name == name);
 
         if let Some(index) = index {
-            // Safely shut down the server before removing
-            self.servers[index].stop();
+            self.servers[index].restart()?;
             self.backup();
             Ok(())
         } else {
-            Err(String::from("Server not found"))
-        }
-    }
-
-    pub fn restart_server(&mut self, name: &str) -> Result<(), String> {
-        let index = self.servers.iter().position(|s| s.name == name);
-
-        if let Some(index) = index {
-            // Safely shut down the server before removing
-            self.servers[index].restart();
-            self.backup();
-            Ok(())
-        } else {
-            Err(String::from("Server not found"))
+            Err("Server not found".into())
         }
     }
 
     pub fn flush(&mut self) {
-        for server in &mut self.servers {
-            server.stop();
+        let mut errors = vec![];
+        let mut stopped_indices = Vec::new();
+    
+        for (index, server) in self.servers.iter_mut().enumerate() {
+            match server.stop() {
+                Ok(_) => stopped_indices.push(index),
+                Err(e) => errors.push(format!("Failed to stop server {}: {}", server.name, e)),
+            }
         }
-        self.servers.clear();
+    
+        // Remove the successfully stopped servers in reverse order
+        for i in stopped_indices.into_iter().rev() {
+            self.servers.remove(i);
+        }
+    
         self.backup();
+    
+        // Print out any errors that occurred
+        if !errors.is_empty() {
+            for error in &errors {
+                eprintln!("{}", error);
+            }
+        }
     }
 
     pub fn monitor(&mut self, name: &str) {

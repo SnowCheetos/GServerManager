@@ -1,6 +1,7 @@
 use std::env;
 use std::path::PathBuf;
 use std::process::Command;
+use std::error::Error;
 use crate::utils::build::{contains_compiled_files, compile_and_install_project, run_cmake};
 use crate::github::utils::{git_pull, git_diff_name_only, initialize_git_repository, add_remote_origin};
 use crate::server::gunicorn::{start_gunicorn, stop_gunicorn};
@@ -31,6 +32,36 @@ impl Server {
         }
     }
 
+    pub fn start(&mut self) -> Result<(), Box<dyn Error>> {
+        if self.is_valid() || self.name.to_lowercase().contains("redis-server") {
+            if !self.name.to_lowercase().contains("redis-server") {
+                start_gunicorn(self)
+            } else {
+                start_redis(self)
+            }
+        } else {
+            Err("Not a valid server directory.".into())
+        }
+    }    
+
+    pub fn stop(&mut self) -> Result<(), Box<dyn Error>> {
+        if self.running {
+            if !self.name.to_lowercase().contains("redis-server") {
+                stop_gunicorn(self)
+            } else {
+                stop_redis(self)
+            }
+        } else {
+            Err("Server not currently running.".into())
+        }
+    }     
+
+    pub fn restart(&mut self) -> Result<(), Box<dyn Error>> {
+        self.stop()?;
+        self.start()?;
+        Ok(())
+    }
+
     pub fn git_init(&mut self) {
         if !self.github {
             initialize_git_repository(&self.path);
@@ -41,59 +72,7 @@ impl Server {
 
     pub fn git_set_origin(&mut self, remote_url: &str) {
         add_remote_origin(&self.path, remote_url);
-    }
-
-    pub fn start(&mut self) {
-        // Start the server
-        if self.is_valid() || self.name.to_lowercase().contains("redis-server") {
-            if !self.name.to_lowercase().contains("redis-server") {
-                
-                match start_gunicorn(self) {
-                    Ok(_) => println!("Gunicorn server started successfully."),
-                    Err(e) => eprintln!("Failed to start Gunicorn server: {}", e),
-                }
-
-            } else {
-                
-                match start_redis(self) {
-                    Ok(_) => println!("Redis server started successfully."),
-                    Err(e) => eprintln!("Failed to start Redis server: {}", e),
-                }
-
-            }
-        } else {
-            println!("Not a valid server directory.")
-        }
-    }
-
-    pub fn stop(&mut self) {
-        if self.running {
-            if !self.name.to_lowercase().contains("redis-server") {
-                
-                match stop_gunicorn(self) {
-                    Ok(_) => println!("Gunicorn server stopped successfully."),
-                    Err(e) => eprintln!("Failed to stop Gunicorn server: {}", e),
-                }
-                
-            } else {
-                
-                match stop_redis(self) {
-                    Ok(_) => println!("Redis server stopped successfully."),
-                    Err(e) => eprintln!("Failed to stop Redis server: {}", e),
-                }
-
-            } 
-        } else {
-            println!("Server not currently running.")
-        }
     }    
-
-    pub fn restart(&mut self) {
-
-        self.stop();
-        self.start();
-    
-    }
 
     pub fn update(&mut self) {
         // Update the server

@@ -17,7 +17,6 @@ pub fn start_redis(server: &mut Server) -> Result<(), Box<dyn Error>> {
             server.path.display(),
             absolute_log_path,
             server.name,
-
         )
     } else {
         format!(
