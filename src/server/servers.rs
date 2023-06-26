@@ -2,6 +2,7 @@ use crate::server::server::Server;
 use std::path::Path;
 use std::path::PathBuf;
 use std::error::Error;
+use std::fs;
 use std::fs::File;
 use std::io::prelude::*;
 use serde_json;
@@ -252,18 +253,30 @@ impl Servers {
             String::from("False")
         };
         if let Some(index) = index {
-            let log_path = self.servers[index].path.join("server.log");
-            if log_path.exists() {
+            let log_filename = format!("{}.log", self.servers[index].name);
+            let log_path = self.servers[index].log_path.join(&log_filename);
+    
+            // Convert the log_path to absolute path.
+            let abs_log_path = match fs::canonicalize(&log_path) {
+                Ok(abs_path) => abs_path,
+                Err(e) => {
+                    eprintln!("Failed to canonicalize path: {:?}", e);
+                    return;
+                },
+            };
+
+            
+            if abs_log_path.exists() {
                 let output = Command::new("python")
                 .arg("scripts/main.py")
-                .arg(log_path)
+                .arg(abs_log_path)
                 .arg(show_arg)
                 .output()
                 .expect("Failed to execute Python script");
                 if output.status.success() {
                     let stdout = String::from_utf8_lossy(&output.stdout);
                     let stderr = String::from_utf8_lossy(&output.stderr);
-            
+    
                     println!("Python script executed successfully:");
                     println!("Output:{}", stdout);
                     println!("Errors:{}", stderr);
@@ -279,7 +292,7 @@ impl Servers {
             println!("Server not found.")
         }
     }
-
+    
 }
 
 #[derive(Serialize, Deserialize)]
