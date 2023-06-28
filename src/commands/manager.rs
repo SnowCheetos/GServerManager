@@ -55,7 +55,8 @@ impl ServerManager {
                     github: utils::is_git_repository(path),
                     running: false,
                     framework: framework.clone(),
-                    original_dir: _original_dir.to_path_buf()
+                    original_dir: _original_dir.to_path_buf(),
+                    on_command: String::from("")
                 };
                 if let Some(servers) = &mut self.servers {
                     if let Err(e) = servers.add_server(server) {
@@ -94,7 +95,8 @@ impl ServerManager {
                     github: utils::is_git_repository(path),
                     running: false,
                     framework: String::from("redis"),
-                    original_dir: _original_dir.to_path_buf()
+                    original_dir: _original_dir.to_path_buf(),
+                    on_command: String::from("")
                 };
                 if let Some(servers) = &mut self.servers {
                     if let Err(e) = servers.add_server(server) {
