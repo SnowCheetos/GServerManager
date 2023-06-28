@@ -39,24 +39,26 @@ fn get_app_string(server: &mut Server, framework: &str) -> Result<String, Box<dy
 
 fn get_gunicorn_command(server: &mut Server, framework: &str, app: &str, absolute_log_path: &str) -> Result<String, Box<dyn Error>> {
     match framework {
-        "flask" | "fastapi" => Ok(format!("gunicorn --bind={}:{} --timeout={} --daemon --access-logfile {}/{}.log --error-logfile {}/{}.log --workers={} {}",
+        "flask" | "fastapi" => Ok(format!("gunicorn --bind={}:{} --timeout={} --daemon --access-logfile {}/{}.log --error-logfile {}/{}.log --pid {}.pid --workers={} {}",
                                             server.bind,
                                             server.port,
                                             server.timeout,
                                             absolute_log_path,
                                             server.name,
                                             absolute_log_path,
+                                            server.name,
                                             server.name,
                                             server.workers,
                                             app
                                         )),
-        "django" => Ok(format!("gunicorn --bind={}:{} --timeout={} --daemon --access-logfile {}/{}.log --error-logfile {}/{}.log {}",
+        "django" => Ok(format!("gunicorn --bind={}:{} --timeout={} --daemon --access-logfile {}/{}.log --error-logfile {}/{}.log --pid {}.pid {}",
                                             server.bind,
                                             server.port,
                                             server.timeout,
                                             absolute_log_path,
                                             server.name,
                                             absolute_log_path,
+                                            server.name,
                                             server.name,
                                             app
                                         )),
@@ -94,12 +96,10 @@ pub fn start_gunicorn(server: &mut Server) -> Result<(), Box<dyn Error>> {
 
 
 pub fn stop_gunicorn(server: &mut Server) -> Result<(), Box<dyn Error>> {
-    let absolute_log_path = fs::canonicalize(&server.log_path)?.to_str().ok_or("Failed to convert path to string")?.to_owned();
     env::set_current_dir(&server.path)?;
-    println!("{}", server.on_command);
     let output = Command::new("pkill")
-        .arg("-f")
-        .arg(format!("'{}'", server.on_command.clone()))
+        .arg("-F")
+        .arg(format!("{}.pid", server.name))
         .output()?;
 
     if output.status.success() {
@@ -109,6 +109,7 @@ pub fn stop_gunicorn(server: &mut Server) -> Result<(), Box<dyn Error>> {
         let error_message = String::from_utf8_lossy(&output.stderr);
         return Err(format!("Failed to stop [{}]: {}", server.name, error_message).into());
     }
+    env::set_current_dir(&server.original_dir)?;
     env::set_current_dir(&server.original_dir)?;
     Ok(())
 }
