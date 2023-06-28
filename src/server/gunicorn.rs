@@ -39,7 +39,7 @@ fn get_app_string(server: &mut Server, framework: &str) -> Result<String, Box<dy
 
 fn get_gunicorn_command(server: &mut Server, framework: &str, app: &str, absolute_log_path: &str) -> Result<String, Box<dyn Error>> {
     match framework {
-        "flask" | "fastapi" => Ok(format!("gunicorn --bind={}:{} --timeout={} --daemon --access-logfile {}/{}.log --error-logfile {}/{}.log --pid {}.pid --workers={} {}",
+        "flask" | "fastapi" => Ok(format!("gunicorn --bind={}:{} --timeout={} --daemon --access-logfile {}/{}.log --error-logfile {}/{}.log --pid {}.pid --workers={} --worker-class=gevent {}",
                                             server.bind,
                                             server.port,
                                             server.timeout,
@@ -51,7 +51,7 @@ fn get_gunicorn_command(server: &mut Server, framework: &str, app: &str, absolut
                                             server.workers,
                                             app
                                         )),
-        "django" => Ok(format!("gunicorn --bind={}:{} --timeout={} --daemon --access-logfile {}/{}.log --error-logfile {}/{}.log --pid {}.pid {}",
+        "django" => Ok(format!("gunicorn --bind={}:{} --timeout={} --daemon --access-logfile {}/{}.log --error-logfile {}/{}.log --pid {}.pid --worker-type=gevent {}",
                                             server.bind,
                                             server.port,
                                             server.timeout,
