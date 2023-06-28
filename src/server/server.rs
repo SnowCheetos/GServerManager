@@ -19,7 +19,8 @@ pub struct Server {
     pub github: bool, // Whether or not the directory is linked to a git repository
     pub running: bool, // Whether or not the server is currently running
     pub framework: String, // The Python framework used, default Flask
-    pub original_dir: PathBuf // The original directory when the application was started
+    pub original_dir: PathBuf, // The original directory when the application was started
+    pub on_command: String
 }
 
 impl Server {

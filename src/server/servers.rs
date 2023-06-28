@@ -2,7 +2,6 @@ use crate::server::server::Server;
 use std::path::Path;
 use std::path::PathBuf;
 use std::error::Error;
-use std::fs;
 use std::fs::File;
 use std::io::prelude::*;
 use serde_json;
@@ -255,21 +254,11 @@ impl Servers {
         if let Some(index) = index {
             let log_filename = format!("{}.log", self.servers[index].name);
             let log_path = self.servers[index].log_path.join(&log_filename);
-    
-            // Convert the log_path to absolute path.
-            let abs_log_path = match fs::canonicalize(&log_path) {
-                Ok(abs_path) => abs_path,
-                Err(e) => {
-                    eprintln!("Failed to canonicalize path: {:?}", e);
-                    return;
-                },
-            };
 
-            
-            if abs_log_path.exists() {
+            if log_path.exists() {
                 let output = Command::new("python")
                 .arg("scripts/main.py")
-                .arg(abs_log_path)
+                .arg(log_path)
                 .arg(show_arg)
                 .output()
                 .expect("Failed to execute Python script");
@@ -307,7 +296,8 @@ struct ServerData {
     github: bool,
     running: bool,
     framework: String,
-    original_dir: PathBuf
+    original_dir: PathBuf,
+    on_command: String
 }
 
 impl From<&Server> for ServerData {
@@ -323,7 +313,8 @@ impl From<&Server> for ServerData {
             github: server.github,
             running: server.running,
             framework: server.framework.clone(),
-            original_dir: server.original_dir.clone()
+            original_dir: server.original_dir.clone(),
+            on_command: server.on_command.clone()
         }
     }
 }
@@ -341,7 +332,8 @@ impl Into<Server> for ServerData {
             github: self.github,
             running: self.running,
             framework: self.framework,
-            original_dir: self.original_dir
+            original_dir: self.original_dir,
+            on_command: self.on_command
         }
     }
 }

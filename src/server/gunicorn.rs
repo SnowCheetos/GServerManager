@@ -39,7 +39,7 @@ fn get_app_string(server: &mut Server, framework: &str) -> Result<String, Box<dy
 
 fn get_gunicorn_command(server: &mut Server, framework: &str, app: &str, absolute_log_path: &str) -> Result<String, Box<dyn Error>> {
     match framework {
-        "flask" | "fastapi" => Ok(format!("gunicorn --bind={}:{} --timeout={} --daemon --access-logfile {}/{}.log --error-logfile {}/{}.log --pid {}.pid --workers={} {}",
+        "flask" | "fastapi" => Ok(format!("gunicorn --bind={}:{} --timeout={} --daemon --access-logfile {}/{}.log --error-logfile {}/{}.log --pid {}.pid --workers={} --worker-class=gevent {}",
                                             server.bind,
                                             server.port,
                                             server.timeout,
@@ -51,7 +51,7 @@ fn get_gunicorn_command(server: &mut Server, framework: &str, app: &str, absolut
                                             server.workers,
                                             app
                                         )),
-        "django" => Ok(format!("gunicorn --bind={}:{} --timeout={} --daemon --access-logfile {}/{}.log --error-logfile {}/{}.log --pid {}.pid {}",
+        "django" => Ok(format!("gunicorn --bind={}:{} --timeout={} --daemon --access-logfile {}/{}.log --error-logfile {}/{}.log --pid {}.pid --worker-type=gevent {}",
                                             server.bind,
                                             server.port,
                                             server.timeout,
@@ -75,7 +75,7 @@ pub fn start_gunicorn(server: &mut Server) -> Result<(), Box<dyn Error>> {
     env::set_current_dir(&server.path)?;
 
     let gunicorn_command = get_gunicorn_command(server, &framework, &app, &absolute_log_path)?;
-
+    server.on_command = gunicorn_command.clone();
     let output = Command::new("sh")
         .arg("-c")
         .arg(&gunicorn_command)
@@ -109,6 +109,7 @@ pub fn stop_gunicorn(server: &mut Server) -> Result<(), Box<dyn Error>> {
         let error_message = String::from_utf8_lossy(&output.stderr);
         return Err(format!("Failed to stop [{}]: {}", server.name, error_message).into());
     }
+    env::set_current_dir(&server.original_dir)?;
     env::set_current_dir(&server.original_dir)?;
     Ok(())
 }
